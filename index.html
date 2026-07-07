@@ -166,7 +166,7 @@ footer a{color:var(--dim)}
     <div id="grid"></div>
   </section>
 
-  <footer>Play in chat: ~wage · ~open &lt;case&gt; · ~inv · ~sell · Prices from Skinport · Not affiliated with Valve</footer>
+  <footer>Play in chat: ~cs wage · ~cs open &lt;case&gt; · ~cs inv · ~cs sell · Prices from Skinport · Not affiliated with Valve</footer>
 </div>
 
 <script>
@@ -352,7 +352,7 @@ fetch('data.json', {cache:'no-store'})
     board('');
     route();
     if(!d.players.length){
-      $('rows').innerHTML = '<div id="msg"><b>No unboxes yet</b>type ~wage in chat to start playing</div>';
+      $('rows').innerHTML = '<div id="msg"><b>No unboxes yet</b>type ~cs wage in chat to start playing</div>';
     }
   })
   .catch(err => {
