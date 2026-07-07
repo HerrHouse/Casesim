@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -7,6 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+@font-face{
+  font-family:'High Speed';
+  src:url('HighSpeed.ttf') format('truetype');
+  font-display:swap;
+}
 :root{
   --bg:#101318; --panel:#191e26; --panel2:#1f2530; --line:#2b3340;
   --text:#e8ecf2; --dim:#8b95a5;
@@ -20,13 +25,13 @@ body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-ser
 a{color:inherit}
 .display{font-family:'Chakra Petch',sans-serif;text-transform:uppercase;letter-spacing:.06em}
 .num{font-variant-numeric:tabular-nums}
-
+ 
 /* header */
 header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-h1{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:26px;letter-spacing:.08em;text-transform:uppercase}
+h1{font-family:'High Speed','Chakra Petch',sans-serif;font-weight:400;font-size:30px;letter-spacing:.08em;text-transform:uppercase}
 h1 span{color:var(--gold)}
 #updated{color:var(--dim);font-size:13px}
-
+ 
 /* biggest pull showcase */
 #showcase{position:relative;overflow:hidden;display:flex;align-items:center;gap:20px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px 24px;margin-bottom:14px}
 #showcase .glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 120% at 82% 50%, var(--rar, var(--milspec)) 0%, transparent 60%);opacity:.16}
@@ -40,18 +45,18 @@ h1 span{color:var(--gold)}
 #showcase.gold::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,225,140,.14) 50%,transparent 60%);background-size:250% 100%;animation:sheen 4.5s linear infinite;pointer-events:none}
 @keyframes sheen{from{background-position:200% 0}to{background-position:-50% 0}}
 @media(prefers-reduced-motion:reduce){#showcase.gold::after{animation:none}}
-
+ 
 /* stat chips */
 #chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
 .chip{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--dim)}
 .chip b{display:block;color:var(--text);font-family:'Chakra Petch',sans-serif;font-size:17px;font-weight:600}
-
+ 
 /* controls */
 #controls{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 #search{background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:8px 12px;font:inherit;font-size:14px;width:210px;max-width:45vw}
 #search:focus{outline:2px solid var(--milspec);outline-offset:1px}
-
+ 
 /* leaderboard */
 .row{display:grid;grid-template-columns:44px minmax(0,1fr) 86px 100px 130px;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:6px;cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit}
 .row:hover,.row:focus-visible{background:var(--panel2);border-color:#3a4556;outline:none}
@@ -66,12 +71,16 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .pl-up{color:var(--up)}.pl-down{color:var(--down)}
 .colhead{display:grid;grid-template-columns:44px minmax(0,1fr) 86px 100px 130px;gap:10px;padding:0 14px 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .colhead span:nth-child(n+3){text-align:right}
+.row.r2,.colhead.ch2{grid-template-columns:44px minmax(0,1fr) 130px 100px}
+.row.r2 .opened{text-align:right;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:18px}
+#controls2{margin-top:30px;margin-bottom:10px}
 @media(max-width:640px){
   .row,.colhead{grid-template-columns:34px minmax(0,1fr) 110px}
+  .row.r2,.colhead.ch2{grid-template-columns:34px minmax(0,1fr) 100px}
   .row .cell.hide-m,.colhead .hide-m{display:none}
   #showcase img{width:140px}
 }
-
+ 
 /* inventory view */
 #back{background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;margin-bottom:16px}
 #back:hover{color:var(--text);border-color:#3a4556}
@@ -90,7 +99,7 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .floatbar i{position:absolute;top:-3px;width:2px;height:10px;background:#fff;border-radius:1px}
 .card .pr{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:15px;margin-top:auto}
 .gold-t{color:var(--gold)}
-
+ 
 /* states */
 #msg{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:36px 20px;text-align:center;color:var(--dim)}
 #msg b{display:block;color:var(--text);font-family:'Chakra Petch',sans-serif;font-size:17px;margin-bottom:6px}
@@ -105,9 +114,9 @@ footer a{color:var(--dim)}
     <h1>H__HBot <span>Armory</span></h1>
     <div id="updated" class="num"></div>
   </header>
-
-  <div id="msg"><b>Loading&hellip;</b>fetching the latest data</div>
-
+ 
+  <div id="msg"><b>Loading…</b>fetching the latest data</div>
+ 
   <section id="board" class="hidden">
     <div id="showcase" class="hidden">
       <div class="glow"></div>
@@ -119,27 +128,31 @@ footer a{color:var(--dim)}
         <div id="sc-price" class="num"></div>
       </div>
     </div>
-
+ 
     <div id="chips"></div>
-
+ 
     <div id="controls">
-      <h2>Leaderboard &middot; net worth</h2>
+      <h2>Leaderboard · net worth</h2>
       <input id="search" type="search" placeholder="Find a player" aria-label="Find a player">
     </div>
     <div class="colhead"><span>#</span><span>Player</span><span class="hide-m">Opened</span><span class="hide-m">P / L</span><span>Net worth</span></div>
     <div id="rows"></div>
+ 
+    <div id="controls2"><h2>Leaderboard · cases opened</h2></div>
+    <div class="colhead ch2"><span>#</span><span>Player</span><span class="hide-m">Net worth</span><span>Opened</span></div>
+    <div id="rows2"></div>
   </section>
-
+ 
   <section id="player" class="hidden">
-    <button id="back">&larr; Leaderboard</button>
+    <button id="back">← Leaderboard</button>
     <div id="pheader"><div id="pname"></div></div>
     <div id="pstats"></div>
     <div id="grid"></div>
   </section>
-
-  <footer>Play in chat: ~cs wage &middot; ~cs open &lt;case&gt; &middot; ~cs inv &middot; ~cs sell &middot; Prices from Skinport &middot; Not affiliated with Valve</footer>
+ 
+  <footer>Play in chat: ~wage · ~open &lt;case&gt; · ~inv · ~sell · Prices from Skinport · Not affiliated with Valve</footer>
 </div>
-
+ 
 <script>
 const RARITY = {
   'Mil-Spec':'var(--milspec)', 'Restricted':'var(--restricted)',
@@ -149,14 +162,14 @@ const $ = id => document.getElementById(id);
 const money = n => '$' + Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let DATA = null;
-
+ 
 function ago(ts){
   const m = Math.max(0, Math.round((Date.now()-ts)/60000));
   if(m < 1) return 'updated just now';
   if(m < 60) return 'updated ' + m + 'm ago';
   return 'updated ' + Math.round(m/60) + 'h ago';
 }
-
+ 
 // Split "StatTrak™ AK-47 | Redline (Field-Tested)" into weapon / skin parts
 function splitName(full){
   let s = String(full);
@@ -167,7 +180,7 @@ function splitName(full){
   const skin = (parts[1]||'').replace(/\s*\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)\s*$/,'') || '(Vanilla)';
   return { weapon, skin, st };
 }
-
+ 
 function showcase(bp){
   if(!bp){ $('showcase').classList.add('hidden'); return; }
   const sc = $('showcase');
@@ -182,7 +195,7 @@ function showcase(bp){
     (bp.float != null ? ' · float ' + bp.float : '');
   $('sc-price').textContent = money(bp.price);
 }
-
+ 
 function chips(st){
   $('chips').innerHTML = [
     ['Players', st.players],
@@ -191,30 +204,48 @@ function chips(st){
     ['Total unboxed', money(st.totalUnboxed)]
   ].map(([l,v]) => '<div class="chip">'+l+'<b class="num">'+v+'</b></div>').join('');
 }
-
+ 
 function board(filter){
   const q = (filter||'').toLowerCase();
+  const none = '<div id="msg"><b>No players found</b>try another name</div>';
+ 
+  // Board 1: net worth (players arrive already sorted by net worth)
   const rows = DATA.players
     .map((p,i)=>({p,i}))
     .filter(({p}) => !q || p.name.includes(q));
-
+ 
   $('rows').innerHTML = rows.length ? rows.map(({p,i}) => {
     const up = p.profit >= 0;
     const medal = i<3 ? ' m'+(i+1) : '';
-    const best = p.bestItem ? esc(p.bestItem.name)+' · '+money(p.bestItem.price) : 'no items';
     return '<button class="row" data-p="'+esc(p.name)+'">'+
       '<span class="rank display'+medal+'">'+(i+1)+'</span>'+
-      '<span class="who"><span class="n">'+esc(p.name)+'</span><span class="b">'+best+'</span></span>'+
+      '<span class="who"><span class="n">'+esc(p.name)+'</span></span>'+
       '<span class="cell hide-m num"><b>'+p.casesOpened+'</b></span>'+
       '<span class="cell hide-m num '+(up?'pl-up':'pl-down')+'"><b class="'+(up?'pl-up':'pl-down')+'">'+(up?'+':'−')+money(Math.abs(p.profit)).slice(1)+'</b></span>'+
       '<span class="worth num">'+money(p.netWorth)+'</span>'+
     '</button>';
-  }).join('') : '<div id="msg"><b>No players found</b>try another name</div>';
-
+  }).join('') : none;
+ 
+  // Board 2: most cases opened
+  const rows2 = [...DATA.players]
+    .sort((a,b) => b.casesOpened - a.casesOpened)
+    .map((p,i)=>({p,i}))
+    .filter(({p}) => !q || p.name.includes(q));
+ 
+  $('rows2').innerHTML = rows2.length ? rows2.map(({p,i}) => {
+    const medal = i<3 ? ' m'+(i+1) : '';
+    return '<button class="row r2" data-p="'+esc(p.name)+'">'+
+      '<span class="rank display'+medal+'">'+(i+1)+'</span>'+
+      '<span class="who"><span class="n">'+esc(p.name)+'</span></span>'+
+      '<span class="cell hide-m num"><b>'+money(p.netWorth)+'</b></span>'+
+      '<span class="opened num">'+p.casesOpened+'</span>'+
+    '</button>';
+  }).join('') : none;
+ 
   document.querySelectorAll('.row').forEach(el =>
     el.addEventListener('click', () => { location.hash = '#/p/' + encodeURIComponent(el.dataset.p); }));
 }
-
+ 
 function card(it){
   const {weapon, skin, st} = splitName(it.name);
   const rar = RARITY[it.rarity] || 'var(--milspec)';
@@ -229,7 +260,7 @@ function card(it){
     '<div class="pr num">'+money(it.price)+'</div>'+
   '</div>';
 }
-
+ 
 function player(name){
   const p = DATA.players.find(x => x.name === name);
   const inv = (DATA.inventories||{})[name] || [];
@@ -246,7 +277,7 @@ function player(name){
     ? inv.map(card).join('')
     : '<div id="msg" style="grid-column:1/-1"><b>Empty inventory</b>everything was sold — or nothing unboxed yet</div>';
 }
-
+ 
 function route(){
   const m = location.hash.match(/^#\/p\/(.+)$/);
   const onPlayer = !!(m && DATA);
@@ -255,11 +286,11 @@ function route(){
   if(onPlayer) player(decodeURIComponent(m[1]));
   window.scrollTo(0,0);
 }
-
+ 
 $('back').addEventListener('click', () => { location.hash=''; });
 $('search').addEventListener('input', e => board(e.target.value));
 window.addEventListener('hashchange', route);
-
+ 
 fetch('data.json', {cache:'no-store'})
   .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
   .then(d => {
@@ -271,7 +302,7 @@ fetch('data.json', {cache:'no-store'})
     board('');
     route();
     if(!d.players.length){
-      $('rows').innerHTML = '<div id="msg"><b>No unboxes yet</b>type ~cs wage in chat to start playing</div>';
+      $('rows').innerHTML = '<div id="msg"><b>No unboxes yet</b>type ~wage in chat to start playing</div>';
     }
   })
   .catch(err => {
