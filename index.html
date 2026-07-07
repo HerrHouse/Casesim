@@ -87,7 +87,11 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 #pheader{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
 #pname{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:24px}
 #pstats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 20px}
-#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
+#ptabs{display:flex;gap:8px;margin-bottom:14px}
+.tabbtn{background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
+.tabbtn:hover{color:var(--text);border-color:#3a4556}
+.tabbtn.active{background:var(--panel2);color:var(--text);border-color:var(--milspec)}
+#grid,#salesgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
 .card{background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px}
 .card .imgbox{background:radial-gradient(70% 70% at 50% 45%,color-mix(in srgb,var(--rar) 22%,transparent),transparent 75%);border-radius:6px;display:flex;justify-content:center;padding:6px 4px}
 .card img{width:100%;max-width:150px;aspect-ratio:4/3;object-fit:contain}
@@ -163,7 +167,12 @@ footer a{color:var(--dim)}
     <button id="back">← Leaderboard</button>
     <div id="pheader"><div id="pname"></div></div>
     <div id="pstats"></div>
+    <div id="ptabs">
+      <button id="tab-inv" class="tabbtn active">Inventory</button>
+      <button id="tab-sales" class="tabbtn">Sales</button>
+    </div>
     <div id="grid"></div>
+    <div id="salesgrid" class="hidden"></div>
   </section>
 
   <footer>Play in chat: ~cs wage · ~cs open &lt;case&gt; · ~cs inv · ~cs sell · Prices from Skinport · Not affiliated with Valve</footer>
@@ -184,6 +193,15 @@ function ago(ts){
   if(m < 1) return 'updated just now';
   if(m < 60) return 'updated ' + m + 'm ago';
   return 'updated ' + Math.round(m/60) + 'h ago';
+}
+
+function soldAgo(ts){
+  const m = Math.max(0, Math.round((Date.now()-ts)/60000));
+  if(m < 1) return 'just now';
+  if(m < 60) return m + 'm ago';
+  const h = Math.round(m/60);
+  if(h < 24) return h + 'h ago';
+  return Math.round(h/24) + 'd ago';
 }
 
 // Split "StatTrak™ AK-47 | Redline (Field-Tested)" into weapon / skin parts
@@ -280,9 +298,33 @@ function card(it){
   '</div>';
 }
 
+function soldCard(it){
+  const {weapon, skin, st} = splitName(it.name);
+  const rar = RARITY[it.rarity] || 'var(--milspec)';
+  const wearLine = it.float != null && it.wear
+    ? '<div class="wear">'+esc(it.wear)+' · '+it.float+'</div>'
+    : '<div class="wear">Vanilla</div>';
+  return '<div class="card" style="--rar:'+rar+'">'+
+    '<div class="imgbox"><img loading="lazy" src="'+esc(it.image||'')+'" alt=""></div>'+
+    '<div><div class="wn">'+(st?'<span class="st">ST™</span>':'')+esc(weapon)+'</div>'+
+    '<div class="sn'+(it.gold?' gold-t':'')+'">'+esc(skin)+'</div></div>'+
+    wearLine+
+    '<div class="pr num">Sold '+money(it.price)+'</div>'+
+    '<div class="wear">'+soldAgo(it.soldAt)+'</div>'+
+  '</div>';
+}
+
+function showProfileTab(tab){
+  $('tab-inv').classList.toggle('active', tab==='inv');
+  $('tab-sales').classList.toggle('active', tab==='sales');
+  $('grid').classList.toggle('hidden', tab!=='inv');
+  $('salesgrid').classList.toggle('hidden', tab!=='sales');
+}
+
 function player(name){
   const p = DATA.players.find(x => x.name === name);
   const inv = (DATA.inventories||{})[name] || [];
+  const sold = (DATA.sales||{})[name] || [];
   if(!p){ location.hash=''; return; }
   $('pname').textContent = p.name;
   $('pstats').innerHTML = [
@@ -295,6 +337,10 @@ function player(name){
   $('grid').innerHTML = inv.length
     ? inv.map(card).join('')
     : '<div id="msg" style="grid-column:1/-1"><b>Empty inventory</b>everything was sold — or nothing unboxed yet</div>';
+  $('salesgrid').innerHTML = sold.length
+    ? sold.map(soldCard).join('')
+    : '<div id="msg" style="grid-column:1/-1"><b>No sales yet</b>items you sell will show up here</div>';
+  showProfileTab('inv');
 }
 
 function casesView(name){
@@ -338,6 +384,8 @@ function route(){
 
 $('back').addEventListener('click', () => { location.hash=''; });
 $('back2').addEventListener('click', () => { location.hash=''; });
+$('tab-inv').addEventListener('click', () => showProfileTab('inv'));
+$('tab-sales').addEventListener('click', () => showProfileTab('sales'));
 $('search').addEventListener('input', e => board(e.target.value));
 window.addEventListener('hashchange', route);
 
