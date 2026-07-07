@@ -92,8 +92,9 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .tabbtn:hover{color:var(--text);border-color:#3a4556}
 .tabbtn.active{background:var(--panel2);color:var(--text);border-color:var(--milspec)}
 #grid,#salesgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
-.card{background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px}
-.card .imgbox{background:radial-gradient(70% 70% at 50% 45%,color-mix(in srgb,var(--rar) 22%,transparent),transparent 75%);border-radius:6px;display:flex;justify-content:center;padding:6px 4px}
+.card{position:relative;background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.card .imgbox{position:relative;background:radial-gradient(70% 70% at 50% 45%,color-mix(in srgb,var(--rar) 22%,transparent),transparent 75%);border-radius:6px;display:flex;justify-content:center;padding:6px 4px}
+.idtag{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:var(--text);font-family:'Chakra Petch',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 6px;border-radius:4px}
 .card img{width:100%;max-width:150px;aspect-ratio:4/3;object-fit:contain}
 .card .wn{color:var(--dim);font-size:11.5px;line-height:1.2}
 .card .sn{font-weight:600;font-size:13.5px;line-height:1.25}
@@ -290,7 +291,10 @@ function card(it){
     ? '<div class="wear">'+esc(it.wear)+' · '+it.float+'</div><div class="floatbar"><i style="left:'+(Math.min(1,Math.max(0,it.float))*100)+'%"></i></div>'
     : '<div class="wear">Vanilla</div>';
   return '<div class="card" style="--rar:'+rar+'">'+
-    '<div class="imgbox"><img loading="lazy" src="'+esc(it.image||'')+'" alt=""></div>'+
+    '<div class="imgbox">'+
+      (it.id != null ? '<div class="idtag num">#'+it.id+'</div>' : '')+
+      '<img loading="lazy" src="'+esc(it.image||'')+'" alt="">'+
+    '</div>'+
     '<div><div class="wn">'+(st?'<span class="st">ST™</span>':'')+esc(weapon)+'</div>'+
     '<div class="sn'+(it.gold?' gold-t':'')+'">'+esc(skin)+'</div></div>'+
     floatBar+
