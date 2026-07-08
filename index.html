@@ -318,7 +318,10 @@ function soldCard(it){
   '</div>';
 }
 
+let activeProfileTab = 'inv';
+
 function showProfileTab(tab){
+  activeProfileTab = tab;
   $('tab-inv').classList.toggle('active', tab==='inv');
   $('tab-sales').classList.toggle('active', tab==='sales');
   $('grid').classList.toggle('hidden', tab!=='inv');
@@ -344,7 +347,9 @@ function player(name){
   $('salesgrid').innerHTML = sold.length
     ? sold.map(soldCard).join('')
     : '<div id="msg" style="grid-column:1/-1"><b>No sales yet</b>items you sell will show up here</div>';
-  showProfileTab('inv');
+  // Preserve whichever tab was open across background refreshes; a real
+  // navigation (hashchange) explicitly resets this back to 'inv'.
+  showProfileTab(activeProfileTab);
 }
 
 function casesView(name){
@@ -373,7 +378,9 @@ function casesView(name){
     : '<div id="msg" style="grid-column:1/-1"><b>Nothing tracked yet</b>opens made after this update will show up here</div>';
 }
 
-function route(){
+// scrollTop=true on a real navigation (hash change / first load); false on a
+// background data refresh, so auto-refresh doesn't yank the page back to top.
+function route(scrollTop){
   const mp = location.hash.match(/^#\/p\/(.+)$/);
   const mc = location.hash.match(/^#\/c\/(.+)$/);
   const onPlayer = !!(mp && DATA);
@@ -383,7 +390,19 @@ function route(){
   $('casesview').classList.toggle('hidden', !onCases);
   if(onPlayer) player(decodeURIComponent(mp[1]));
   if(onCases) casesView(decodeURIComponent(mc[1]));
-  window.scrollTo(0,0);
+  if(scrollTop) window.scrollTo(0,0);
+}
+
+function render(scrollTop){
+  $('msg').classList.add('hidden');
+  $('updated').textContent = DATA.updated ? ago(DATA.updated) : '';
+  showcase(DATA.bestPull);
+  chips(DATA.stats);
+  board($('search').value); // preserve an in-progress search across refreshes
+  if(!DATA.players.length){
+    $('rows').innerHTML = '<div id="msg"><b>No unboxes yet</b>type ~cs wage in chat to start playing</div>';
+  }
+  route(scrollTop);
 }
 
 $('back').addEventListener('click', () => { location.hash=''; });
@@ -391,26 +410,29 @@ $('back2').addEventListener('click', () => { location.hash=''; });
 $('tab-inv').addEventListener('click', () => showProfileTab('inv'));
 $('tab-sales').addEventListener('click', () => showProfileTab('sales'));
 $('search').addEventListener('input', e => board(e.target.value));
-window.addEventListener('hashchange', route);
+window.addEventListener('hashchange', () => { activeProfileTab = 'inv'; route(true); });
 
-fetch('data.json', {cache:'no-store'})
-  .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-  .then(d => {
-    DATA = d;
-    $('msg').classList.add('hidden');
-    $('updated').textContent = d.updated ? ago(d.updated) : '';
-    showcase(d.bestPull);
-    chips(d.stats);
-    board('');
-    route();
-    if(!d.players.length){
-      $('rows').innerHTML = '<div id="msg"><b>No unboxes yet</b>type ~cs wage in chat to start playing</div>';
-    }
-  })
-  .catch(err => {
-    $('msg').innerHTML = '<b>No data yet</b>the bot hasn\'t published data.json — check the bot console';
-    console.error(err);
-  });
+const REFRESH_MS = 15000;
+
+function loadData(isBackground){
+  fetch('data.json', {cache:'no-store'})
+    .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(d => {
+      DATA = d;
+      render(!isBackground);
+    })
+    .catch(err => {
+      if(!isBackground){
+        $('msg').innerHTML = '<b>No data yet</b>the bot hasn\'t published data.json — check the bot console';
+      }
+      console.error(err);
+    });
+}
+
+loadData(false);
+setInterval(() => { if(!document.hidden) loadData(true); }, REFRESH_MS);
+// Catch up immediately when the tab regains focus, instead of waiting for the next tick
+document.addEventListener('visibilitychange', () => { if(!document.hidden) loadData(true); });
 </script>
 </body>
 </html>
