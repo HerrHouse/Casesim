@@ -87,10 +87,20 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 #pheader{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
 #pname{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:24px}
 #pstats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 20px}
-#ptabs{display:flex;gap:8px;margin-bottom:14px}
+#ptabs{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+#ptabs-left{display:flex;gap:8px}
 .tabbtn{background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
 .tabbtn:hover{color:var(--text);border-color:#3a4556}
 .tabbtn.active{background:var(--panel2);color:var(--text);border-color:var(--milspec)}
+
+/* inventory filters */
+#filterwrap{position:relative}
+.filter-badge{display:inline-block;background:var(--milspec);color:#fff;font-size:10.5px;font-weight:700;border-radius:10px;padding:0 6px;margin-left:5px;vertical-align:1px}
+#filter-panel{position:absolute;top:calc(100% + 6px);right:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px;width:220px;max-width:calc(100vw - 32px);z-index:20;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+#filter-panel label{display:flex;flex-direction:column;gap:4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+#filter-panel select{background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:7px 8px;font:inherit;font-size:13px}
+#filter-panel select:focus{outline:2px solid var(--milspec);outline-offset:1px}
+#filter-clear{align-self:flex-start;font-size:12px;padding:5px 10px;margin-top:2px}
 #grid,#salesgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
 .card{position:relative;background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px}
 .card .imgbox{position:relative;background:radial-gradient(70% 70% at 50% 45%,color-mix(in srgb,var(--rar) 22%,transparent),transparent 75%);border-radius:6px;display:flex;justify-content:center;padding:6px 4px}
@@ -169,8 +179,20 @@ footer a{color:var(--dim)}
     <div id="pheader"><div id="pname"></div></div>
     <div id="pstats"></div>
     <div id="ptabs">
-      <button id="tab-inv" class="tabbtn active">Inventory</button>
-      <button id="tab-sales" class="tabbtn">Sales</button>
+      <div id="ptabs-left">
+        <button id="tab-inv" class="tabbtn active">Inventory</button>
+        <button id="tab-sales" class="tabbtn">Sales</button>
+      </div>
+      <div id="filterwrap">
+        <button id="filter-toggle" class="tabbtn">Filters<span id="filter-badge" class="filter-badge hidden">0</span> ▾</button>
+        <div id="filter-panel" class="hidden">
+          <label>Exterior<select id="f-wear"><option value="">All</option></select></label>
+          <label>Quality<select id="f-rarity"><option value="">All</option></select></label>
+          <label>Collection<select id="f-case"><option value="">All</option></select></label>
+          <label>Weapon<select id="f-weapon"><option value="">All</option></select></label>
+          <button id="filter-clear" class="tabbtn">Clear filters</button>
+        </div>
+      </div>
     </div>
     <div id="grid"></div>
     <div id="salesgrid" class="hidden"></div>
@@ -328,11 +350,82 @@ function showProfileTab(tab){
   $('salesgrid').classList.toggle('hidden', tab!=='sales');
 }
 
+// --- Inventory/sales filters (exterior, quality, collection, weapon) ---
+let filters = { wear: '', rarity: '', case: '', weapon: '' };
+let currentInv = [];
+let currentSold = [];
+
+const itemExterior = it => it.wear || 'Vanilla';
+const itemWeapon = it => splitName(it.name).weapon;
+
+function matchesFilters(it){
+  if(filters.wear && itemExterior(it) !== filters.wear) return false;
+  if(filters.rarity && it.rarity !== filters.rarity) return false;
+  if(filters.case && it.case !== filters.case) return false;
+  if(filters.weapon && itemWeapon(it) !== filters.weapon) return false;
+  return true;
+}
+
+// Rebuild a <select>'s options from what's actually present, keeping the
+// current selection if it's still valid (clearing it otherwise).
+function fillSelect(id, values){
+  const sel = $(id);
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">All</option>' +
+    values.map(v => '<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');
+  sel.value = values.includes(prev) ? prev : '';
+}
+
+const WEAR_ORDER = ['Factory New','Minimal Wear','Field-Tested','Well-Worn','Battle-Scarred','Vanilla'];
+const RARITY_ORDER = ['Mil-Spec','Restricted','Classified','Covert','Rare Special'];
+
+function populateFilterOptions(items){
+  const wears = new Set(items.map(itemExterior));
+  const rarities = new Set(items.map(it => it.rarity));
+  const cases = new Set(items.map(it => it.case));
+  const weapons = new Set(items.map(itemWeapon));
+
+  fillSelect('f-wear', WEAR_ORDER.filter(w => wears.has(w)));
+  fillSelect('f-rarity', RARITY_ORDER.filter(r => rarities.has(r)));
+  fillSelect('f-case', [...cases].sort());
+  fillSelect('f-weapon', [...weapons].sort());
+
+  // A previously-selected value may have just been cleared above if it no
+  // longer applies (e.g. switched to a different player's profile).
+  filters.wear = $('f-wear').value;
+  filters.rarity = $('f-rarity').value;
+  filters.case = $('f-case').value;
+  filters.weapon = $('f-weapon').value;
+}
+
+function renderProfileGrids(){
+  const filteredInv = currentInv.filter(matchesFilters);
+  const filteredSold = currentSold.filter(matchesFilters);
+
+  $('grid').innerHTML = filteredInv.length
+    ? filteredInv.map(card).join('')
+    : currentInv.length
+      ? '<div id="msg" style="grid-column:1/-1"><b>No items match these filters</b>try clearing a filter</div>'
+      : '<div id="msg" style="grid-column:1/-1"><b>Empty inventory</b>everything was sold — or nothing unboxed yet</div>';
+
+  $('salesgrid').innerHTML = filteredSold.length
+    ? filteredSold.map(soldCard).join('')
+    : currentSold.length
+      ? '<div id="msg" style="grid-column:1/-1"><b>No sales match these filters</b>try clearing a filter</div>'
+      : '<div id="msg" style="grid-column:1/-1"><b>No sales yet</b>items you sell will show up here</div>';
+
+  const activeCount = Object.values(filters).filter(Boolean).length;
+  $('filter-badge').textContent = activeCount;
+  $('filter-badge').classList.toggle('hidden', activeCount === 0);
+}
+
 function player(name){
   const p = DATA.players.find(x => x.name === name);
   const inv = (DATA.inventories||{})[name] || [];
   const sold = (DATA.sales||{})[name] || [];
   if(!p){ location.hash=''; return; }
+  currentInv = inv;
+  currentSold = sold;
   $('pname').textContent = p.name;
   $('pstats').innerHTML = [
     ['Net worth', money(p.netWorth)],
@@ -341,12 +434,8 @@ function player(name){
     ['Cases opened', p.casesOpened],
     ['Profit / loss', (p.profit>=0?'+':'−') + money(Math.abs(p.profit)).slice(1)]
   ].map(([l,v]) => '<div class="chip">'+l+'<b class="num">'+v+'</b></div>').join('');
-  $('grid').innerHTML = inv.length
-    ? inv.map(card).join('')
-    : '<div id="msg" style="grid-column:1/-1"><b>Empty inventory</b>everything was sold — or nothing unboxed yet</div>';
-  $('salesgrid').innerHTML = sold.length
-    ? sold.map(soldCard).join('')
-    : '<div id="msg" style="grid-column:1/-1"><b>No sales yet</b>items you sell will show up here</div>';
+  populateFilterOptions([...inv, ...sold]);
+  renderProfileGrids();
   // Preserve whichever tab was open across background refreshes; a real
   // navigation (hashchange) explicitly resets this back to 'inv'.
   showProfileTab(activeProfileTab);
@@ -410,7 +499,27 @@ $('back2').addEventListener('click', () => { location.hash=''; });
 $('tab-inv').addEventListener('click', () => showProfileTab('inv'));
 $('tab-sales').addEventListener('click', () => showProfileTab('sales'));
 $('search').addEventListener('input', e => board(e.target.value));
-window.addEventListener('hashchange', () => { activeProfileTab = 'inv'; route(true); });
+
+$('filter-toggle').addEventListener('click', () => { $('filter-panel').classList.toggle('hidden'); });
+document.addEventListener('click', e => {
+  if(!$('filterwrap').contains(e.target)) $('filter-panel').classList.add('hidden');
+});
+$('f-wear').addEventListener('change', e => { filters.wear = e.target.value; renderProfileGrids(); });
+$('f-rarity').addEventListener('change', e => { filters.rarity = e.target.value; renderProfileGrids(); });
+$('f-case').addEventListener('change', e => { filters.case = e.target.value; renderProfileGrids(); });
+$('f-weapon').addEventListener('change', e => { filters.weapon = e.target.value; renderProfileGrids(); });
+$('filter-clear').addEventListener('click', () => {
+  filters = { wear: '', rarity: '', case: '', weapon: '' };
+  ['f-wear','f-rarity','f-case','f-weapon'].forEach(id => $(id).value = '');
+  renderProfileGrids();
+});
+
+window.addEventListener('hashchange', () => {
+  activeProfileTab = 'inv';
+  filters = { wear: '', rarity: '', case: '', weapon: '' };
+  $('filter-panel').classList.add('hidden');
+  route(true);
+});
 
 const REFRESH_MS = 15000;
 
