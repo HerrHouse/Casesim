@@ -82,12 +82,13 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .row .worth{text-align:right;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:18px}
 .pl-up{color:var(--up)}.pl-down{color:var(--down)}
 .colhead{display:grid;grid-template-columns:44px minmax(0,1fr) 86px 100px 130px;gap:10px;padding:0 14px 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
-.colhead > :nth-child(n+3){text-align:right}
-.sortbtn{background:none;border:none;color:var(--dim);font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0;text-align:inherit}
-.sortbtn:hover{color:var(--text)}
-.sortbtn.active{color:var(--text);font-weight:700}
+.colhead span:nth-child(n+3){text-align:right}
+.row.r2,.colhead.ch2{grid-template-columns:44px minmax(0,1fr) 130px 100px}
+.row.r2 .opened{text-align:right;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:18px}
+#controls2{margin-top:30px;margin-bottom:10px}
 @media(max-width:640px){
   .row,.colhead{grid-template-columns:34px minmax(0,1fr) 110px}
+  .row.r2,.colhead.ch2{grid-template-columns:34px minmax(0,1fr) 100px}
   .row .cell.hide-m,.colhead .hide-m{display:none}
   #showcase img{width:140px}
 }
@@ -171,17 +172,15 @@ footer a{color:var(--dim)}
     <div id="chips"></div>
 
     <div id="controls">
-      <h2>Leaderboard</h2>
+      <h2>Leaderboard · net worth</h2>
       <input id="search" type="search" placeholder="Find a player" aria-label="Find a player">
     </div>
-    <div class="colhead">
-      <span>#</span>
-      <button class="sortbtn" data-sort="name">Player</button>
-      <button class="sortbtn hide-m" data-sort="casesOpened">Opened</button>
-      <button class="sortbtn hide-m" data-sort="profit">P / L</button>
-      <button class="sortbtn" data-sort="netWorth">Net worth</button>
-    </div>
+    <div class="colhead"><span>#</span><span>Player</span><span class="hide-m">Opened</span><span class="hide-m">P / L</span><span>Net worth</span></div>
     <div id="rows"></div>
+
+    <div id="controls2"><h2>Leaderboard · cases opened</h2></div>
+    <div class="colhead ch2"><span>#</span><span>Player</span><span class="hide-m">Net worth</span><span>Opened</span></div>
+    <div id="rows2"></div>
   </section>
 
   <section id="casesview" class="hidden">
@@ -301,37 +300,14 @@ function chips(st){
   ].map(([l,v]) => '<div class="chip">'+l+'<b class="num">'+v+'</b></div>').join('');
 }
 
-let sortKey = 'netWorth';
-let sortDir = -1; // -1 = descending, 1 = ascending
-const SORT_LABELS = { name: 'Player', casesOpened: 'Opened', profit: 'P / L', netWorth: 'Net worth' };
-
-function setSort(key){
-  if (sortKey === key) sortDir = -sortDir;
-  else { sortKey = key; sortDir = key === 'name' ? 1 : -1; }
-  board($('search').value);
-}
-
-function updateSortHeaders(){
-  document.querySelectorAll('.sortbtn').forEach(btn => {
-    const key = btn.dataset.sort;
-    const active = key === sortKey;
-    btn.classList.toggle('active', active);
-    btn.textContent = SORT_LABELS[key] + (active ? (sortDir === 1 ? ' ▲' : ' ▼') : '');
-  });
-}
-
 function board(filter){
   const q = (filter||'').toLowerCase();
   const none = '<div id="msg"><b>No players found</b>try another name</div>';
 
+  // Board 1: net worth (players arrive already sorted by net worth)
   const rows = DATA.players
-    .filter(p => !q || p.name.includes(q))
-    .sort((a,b) => {
-      const av = sortKey === 'name' ? a.name : a[sortKey];
-      const bv = sortKey === 'name' ? b.name : b[sortKey];
-      return typeof av === 'string' ? sortDir * av.localeCompare(bv) : sortDir * (av - bv);
-    })
-    .map((p,i)=>({p,i}));
+    .map((p,i)=>({p,i}))
+    .filter(({p}) => !q || p.name.includes(q));
 
   $('rows').innerHTML = rows.length ? rows.map(({p,i}) => {
     const up = p.profit >= 0;
@@ -345,10 +321,27 @@ function board(filter){
     '</button>';
   }).join('') : none;
 
-  document.querySelectorAll('#rows .row').forEach(el =>
-    el.addEventListener('click', () => { location.hash = '#/p/' + encodeURIComponent(el.dataset.p); }));
+  // Board 2: most cases opened
+  const rows2 = [...DATA.players]
+    .sort((a,b) => b.casesOpened - a.casesOpened)
+    .map((p,i)=>({p,i}))
+    .filter(({p}) => !q || p.name.includes(q));
 
-  updateSortHeaders();
+  $('rows2').innerHTML = rows2.length ? rows2.map(({p,i}) => {
+    const medal = i<3 ? ' m'+(i+1) : '';
+    return '<button class="row r2" data-c="'+esc(p.name)+'">'+
+      '<span class="rank display'+medal+'">'+(i+1)+'</span>'+
+      '<span class="who"><span class="n">'+esc(p.name)+'</span></span>'+
+      '<span class="cell hide-m num"><b>'+money(p.netWorth)+'</b></span>'+
+      '<span class="opened num">'+p.casesOpened+'</span>'+
+    '</button>';
+  }).join('') : none;
+
+  document.querySelectorAll('.row').forEach(el =>
+    el.addEventListener('click', () => {
+      if (el.dataset.c) location.hash = '#/c/' + encodeURIComponent(el.dataset.c);
+      else location.hash = '#/p/' + encodeURIComponent(el.dataset.p);
+    }));
 }
 
 function card(it){
@@ -550,8 +543,6 @@ $('tab-cases').addEventListener('click', () => {
   if(currentPlayerName) location.hash = '#/c/' + encodeURIComponent(currentPlayerName);
 });
 $('search').addEventListener('input', e => board(e.target.value));
-document.querySelectorAll('.sortbtn').forEach(btn =>
-  btn.addEventListener('click', () => setSort(btn.dataset.sort)));
 
 $('filter-toggle').addEventListener('click', () => { $('filter-panel').classList.toggle('hidden'); });
 document.addEventListener('click', e => {
