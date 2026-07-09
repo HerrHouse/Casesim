@@ -70,7 +70,7 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 #search:focus{outline:2px solid var(--milspec);outline-offset:1px}
 
 /* leaderboard */
-.row{display:grid;grid-template-columns:44px minmax(0,1fr) 86px 100px 130px;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:6px;cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) 100px 130px;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:6px;cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit}
 .row:hover,.row:focus-visible{background:var(--panel2);border-color:#3a4556;outline:none}
 .row .rank{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:16px;color:var(--dim)}
 .row .rank.m1{color:var(--gold)}.row .rank.m2{color:#c8d2e0}.row .rank.m3{color:#c0763c}
@@ -81,9 +81,9 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .row .cell b{display:block;color:var(--text);font-weight:600;font-size:14px}
 .row .worth{text-align:right;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:18px}
 .pl-up{color:var(--up)}.pl-down{color:var(--down)}
-.colhead{display:grid;grid-template-columns:44px minmax(0,1fr) 86px 100px 130px;gap:10px;padding:0 14px 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.colhead{display:grid;grid-template-columns:44px minmax(0,1fr) 100px 130px;gap:10px;padding:0 14px 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .colhead span:nth-child(n+3){text-align:right}
-.row.r2,.colhead.ch2{grid-template-columns:44px minmax(0,1fr) 130px 100px}
+.row.r2,.colhead.ch2{grid-template-columns:44px minmax(0,1fr) 100px}
 .row.r2 .opened{text-align:right;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:18px}
 #controls2{margin-top:30px;margin-bottom:10px}
 @media(max-width:640px){
@@ -175,11 +175,11 @@ footer a{color:var(--dim)}
       <h2>Leaderboard · net worth</h2>
       <input id="search" type="search" placeholder="Find a player" aria-label="Find a player">
     </div>
-    <div class="colhead"><span>#</span><span>Player</span><span class="hide-m">Opened</span><span class="hide-m">P / L</span><span>Net worth</span></div>
+    <div class="colhead"><span>#</span><span>Player</span><span class="hide-m">P / L</span><span>Net worth</span></div>
     <div id="rows"></div>
 
     <div id="controls2"><h2>Leaderboard · cases opened</h2></div>
-    <div class="colhead ch2"><span>#</span><span>Player</span><span class="hide-m">Net worth</span><span>Opened</span></div>
+    <div class="colhead ch2"><span>#</span><span>Player</span><span>Opened</span></div>
     <div id="rows2"></div>
   </section>
 
@@ -315,7 +315,6 @@ function board(filter){
     return '<button class="row" data-p="'+esc(p.name)+'">'+
       '<span class="rank display'+medal+'">'+(i+1)+'</span>'+
       '<span class="who"><span class="n">'+esc(p.name)+'</span></span>'+
-      '<span class="cell hide-m num"><b>'+p.casesOpened+'</b></span>'+
       '<span class="cell hide-m num '+(up?'pl-up':'pl-down')+'"><b class="'+(up?'pl-up':'pl-down')+'">'+(up?'+':'−')+money(Math.abs(p.profit)).slice(1)+'</b></span>'+
       '<span class="worth num">'+money(p.netWorth)+'</span>'+
     '</button>';
@@ -332,7 +331,6 @@ function board(filter){
     return '<button class="row r2" data-c="'+esc(p.name)+'">'+
       '<span class="rank display'+medal+'">'+(i+1)+'</span>'+
       '<span class="who"><span class="n">'+esc(p.name)+'</span></span>'+
-      '<span class="cell hide-m num"><b>'+money(p.netWorth)+'</b></span>'+
       '<span class="opened num">'+p.casesOpened+'</span>'+
     '</button>';
   }).join('') : none;
