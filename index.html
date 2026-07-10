@@ -150,6 +150,19 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .ccard .ct{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:20px;color:var(--gold)}
 #cnote{color:var(--dim);font-size:12.5px;margin:-10px 0 16px}
 
+/* collection view */
+#colgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
+.colcard{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.colcard.complete{border-color:var(--gold)}
+.colcard img{width:64px;height:64px;object-fit:contain;margin:0 auto}
+.colcard .coln{font-size:13px;font-weight:600;line-height:1.25}
+.colcard .colprog{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:15px;color:var(--dim)}
+.colcard.complete .colprog{color:var(--gold)}
+.colcard .colbar{width:100%;height:6px;border-radius:3px;background:var(--panel2);overflow:hidden}
+.colcard .colbar i{display:block;height:100%;background:var(--milspec);border-radius:3px}
+.colcard.complete .colbar i{background:var(--gold)}
+#colnote{color:var(--dim);font-size:12.5px;margin:-10px 0 16px}
+
 /* states */
 #msg{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:36px 20px;text-align:center;color:var(--dim)}
 #msg b{display:block;color:var(--text);font-family:'Chakra Petch',sans-serif;font-size:17px;margin-bottom:6px}
@@ -208,6 +221,14 @@ footer a{color:var(--dim)}
     <div id="cgrid"></div>
   </section>
 
+  <section id="collectionsview" class="hidden">
+    <button id="back3" class="backbtn">← Leaderboard</button>
+    <div id="pheader3" style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px"><div id="colname" style="font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:24px"></div></div>
+    <div id="colstats" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px"></div>
+    <div id="colnote" class="hidden">Collection tracking was added later, so this only counts opens since then.</div>
+    <div id="colgrid"></div>
+  </section>
+
   <section id="player" class="hidden">
     <button id="back">← Leaderboard</button>
     <div id="pheader"><div id="pname"></div></div>
@@ -217,13 +238,14 @@ footer a{color:var(--dim)}
         <button id="tab-inv" class="tabbtn active">Inventory</button>
         <button id="tab-sales" class="tabbtn">Sales</button>
         <button id="tab-cases" class="tabbtn">Cases opened →</button>
+        <button id="tab-collections" class="tabbtn">Collections →</button>
       </div>
       <div id="filterwrap">
         <button id="filter-toggle" class="tabbtn">Filters<span id="filter-badge" class="filter-badge hidden">0</span> ▾</button>
         <div id="filter-panel" class="hidden">
           <label>Exterior<select id="f-wear"><option value="">All</option></select></label>
           <label>Quality<select id="f-rarity"><option value="">All</option></select></label>
-          <label>Collection<select id="f-case"><option value="">All</option></select></label>
+          <label>Case<select id="f-case"><option value="">All</option></select></label>
           <label>Weapon<select id="f-weapon"><option value="">All</option></select></label>
           <button id="filter-clear" class="tabbtn">Clear filters</button>
         </div>
@@ -569,18 +591,53 @@ function casesView(name){
     : '<div id="msg" style="grid-column:1/-1"><b>Nothing tracked yet</b>opens made after this update will show up here</div>';
 }
 
+function collectionsView(name){
+  const p = DATA.players.find(x => x.name === name);
+  if(!p){ location.hash=''; return; }
+  const collections = p.collections || [];
+  const complete = collections.filter(c => c.total != null && c.owned >= c.total).length;
+
+  $('colname').textContent = p.name + ' — collections';
+  $('colstats').innerHTML = [
+    ['Collections started', collections.length],
+    ['Completed', complete]
+  ].map(([l,v]) => '<div class="chip">'+l+'<b class="num">'+v+'</b></div>').join('');
+
+  // Case-open tracking started before collection tracking did, so if that
+  // itself has gaps, collection history is at least as incomplete.
+  const caseTracked = (p.caseOpens || []).reduce((s,c) => s + c.count, 0);
+  $('colnote').classList.toggle('hidden', caseTracked >= p.casesOpened);
+
+  $('colgrid').innerHTML = collections.length
+    ? collections.map(c => {
+        const pct = c.total ? Math.min(100, Math.round(c.owned / c.total * 100)) : 0;
+        const isComplete = c.total != null && c.owned >= c.total;
+        return '<div class="colcard'+(isComplete?' complete':'')+'">'+
+          (c.image ? '<img loading="lazy" src="'+esc(c.image)+'" alt="">' : '')+
+          '<div class="coln">'+esc(c.name)+'</div>'+
+          '<div class="colprog num">'+c.owned+' / '+(c.total != null ? c.total : '?')+'</div>'+
+          '<div class="colbar"><i style="width:'+pct+'%"></i></div>'+
+        '</div>';
+      }).join('')
+    : '<div id="msg" style="grid-column:1/-1"><b>Nothing tracked yet</b>opens made after this update will show up here</div>';
+}
+
 // scrollTop=true on a real navigation (hash change / first load); false on a
 // background data refresh, so auto-refresh doesn't yank the page back to top.
 function route(scrollTop){
   const mp = location.hash.match(/^#\/p\/(.+)$/);
   const mc = location.hash.match(/^#\/c\/(.+)$/);
+  const mcol = location.hash.match(/^#\/col\/(.+)$/);
   const onPlayer = !!(mp && DATA);
   const onCases = !!(mc && DATA);
-  $('board').classList.toggle('hidden', onPlayer || onCases);
+  const onCollections = !!(mcol && DATA);
+  $('board').classList.toggle('hidden', onPlayer || onCases || onCollections);
   $('player').classList.toggle('hidden', !onPlayer);
   $('casesview').classList.toggle('hidden', !onCases);
+  $('collectionsview').classList.toggle('hidden', !onCollections);
   if(onPlayer) player(decodeURIComponent(mp[1]));
   if(onCases) casesView(decodeURIComponent(mc[1]));
+  if(onCollections) collectionsView(decodeURIComponent(mcol[1]));
   if(scrollTop) window.scrollTo(0,0);
 }
 
@@ -599,10 +656,14 @@ function render(scrollTop){
 
 $('back').addEventListener('click', () => { location.hash=''; });
 $('back2').addEventListener('click', () => { location.hash=''; });
+$('back3').addEventListener('click', () => { location.hash=''; });
 $('tab-inv').addEventListener('click', () => showProfileTab('inv'));
 $('tab-sales').addEventListener('click', () => showProfileTab('sales'));
 $('tab-cases').addEventListener('click', () => {
   if(currentPlayerName) location.hash = '#/c/' + encodeURIComponent(currentPlayerName);
+});
+$('tab-collections').addEventListener('click', () => {
+  if(currentPlayerName) location.hash = '#/col/' + encodeURIComponent(currentPlayerName);
 });
 $('search').addEventListener('input', e => board(e.target.value));
 
