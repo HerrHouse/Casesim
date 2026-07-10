@@ -46,17 +46,28 @@ h1 span{color:var(--gold)}
 @keyframes sheen{from{background-position:200% 0}to{background-position:-50% 0}}
 @media(prefers-reduced-motion:reduce){#showcase.gold::after{animation:none}}
 
-/* recent pulls feed */
-#activity{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:22px}
-#activity h2{margin-bottom:10px}
-#activity-list{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
-.arow{display:flex;align-items:center;gap:10px;background:var(--panel2);border-left:3px solid var(--rar,var(--milspec));border-radius:6px;padding:8px 10px;cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit}
-.arow:hover,.arow:focus-visible{background:#242b38;outline:none}
-.arow .an{font-weight:600;flex-shrink:0}
-.arow .ai{color:var(--dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
-.arow .ap{font-family:'Chakra Petch',sans-serif;font-weight:700;flex-shrink:0}
-.arow .at{color:var(--dim);font-size:11.5px;flex-shrink:0;min-width:48px;text-align:right}
-@media(max-width:640px){ .arow .at{display:none} }
+/* recent pulls feed - horizontally scrolling ticker */
+#activity{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 0;margin-bottom:22px;overflow:hidden}
+#activity h2{padding:0 16px;margin-bottom:10px}
+#activity-viewport{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
+#activity-track{display:flex;gap:10px;width:max-content;padding:0 16px;animation:ticker-scroll linear infinite}
+#activity-track:hover{animation-play-state:paused}
+@keyframes ticker-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+.tcard{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--panel2);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:10px;cursor:pointer;flex-shrink:0;width:150px;color:inherit;font:inherit;text-align:center}
+.tcard:hover,.tcard:focus-visible{background:#242b38;outline:none}
+.tcard .tuser{display:flex;align-items:center;gap:5px;width:100%;overflow:hidden}
+.tcard .avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.tcard .avatar-fallback{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Chakra Petch',sans-serif;font-size:11px;font-weight:700;color:#fff}
+.tcard .uname{font-size:11.5px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcard .timg{width:100%;max-width:110px;aspect-ratio:4/3;object-fit:contain;margin:4px 0}
+.tcard .tname{font-size:11.5px;color:var(--dim);line-height:1.25;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tcard .tprice{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:14px;margin-top:1px}
+
+@media(prefers-reduced-motion:reduce){
+  #activity-track{animation:none}
+  #activity-viewport{overflow-x:auto}
+}
 
 /* stat chips */
 #chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
@@ -166,7 +177,9 @@ footer a{color:var(--dim)}
 
     <div id="activity" class="hidden">
       <h2>Recent pulls</h2>
-      <div id="activity-list"></div>
+      <div id="activity-viewport">
+        <div id="activity-track"></div>
+      </div>
     </div>
 
     <div id="chips"></div>
@@ -272,22 +285,63 @@ function showcase(bp){
 }
 
 const ACTIVITY_SHOWN = 20;
+let lastActivityAt = null;
+
+// Deterministic color from a username, so the same person always gets the
+// same placeholder color when they have no (or a failed) Twitch avatar.
+function avatarColor(name){
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return 'hsl(' + (Math.abs(hash) % 360) + ',55%,45%)';
+}
+
+function avatarHtml(name, url){
+  if (url) return '<img class="avatar" src="'+esc(url)+'" data-name="'+esc(name)+'" alt="">';
+  return '<div class="avatar-fallback" style="background:'+avatarColor(name)+'">'+esc(name.charAt(0).toUpperCase() || '?')+'</div>';
+}
+
+// Swap a broken avatar <img> (e.g. a stale/404 Twitch URL) for a generated
+// placeholder. 'error' doesn't bubble, so this needs the capture phase.
+document.addEventListener('error', e => {
+  const img = e.target;
+  if (!img.classList || !img.classList.contains('avatar')) return;
+  const name = img.dataset.name || '?';
+  const fallback = document.createElement('div');
+  fallback.className = 'avatar-fallback';
+  fallback.style.background = avatarColor(name);
+  fallback.textContent = name.charAt(0).toUpperCase() || '?';
+  img.replaceWith(fallback);
+}, true);
+
+function tickerCard(a){
+  const {weapon, skin, st} = splitName(a.name);
+  const rar = RARITY[a.rarity] || 'var(--milspec)';
+  return '<button class="tcard" style="--rar:'+rar+'" data-p="'+esc(a.owner)+'">'+
+    '<div class="tuser">'+avatarHtml(a.owner, a.avatar)+'<span class="uname">'+esc(a.owner)+'</span></div>'+
+    '<img class="timg" loading="lazy" src="'+esc(a.image||'')+'" alt="">'+
+    '<div class="tname'+(a.gold?' gold-t':'')+'">'+(st?'ST™ ':'')+esc(weapon)+' | '+esc(skin)+'</div>'+
+    '<div class="tprice num">'+money(a.price)+'</div>'+
+  '</button>';
+}
 
 function renderActivity(list){
-  list = list || [];
+  list = (list || []).slice(0, ACTIVITY_SHOWN);
   if(!list.length){ $('activity').classList.add('hidden'); return; }
   $('activity').classList.remove('hidden');
-  $('activity-list').innerHTML = list.slice(0, ACTIVITY_SHOWN).map(a => {
-    const {weapon, skin, st} = splitName(a.name);
-    const rar = RARITY[a.rarity] || 'var(--milspec)';
-    return '<button class="arow" style="--rar:'+rar+'" data-p="'+esc(a.owner)+'">'+
-      '<span class="an">'+esc(a.owner)+'</span>'+
-      '<span class="ai'+(a.gold?' gold-t':'')+'">'+(st?'ST™ ':'')+esc(weapon)+' | '+esc(skin)+'</span>'+
-      '<span class="ap num">'+money(a.price)+'</span>'+
-      '<span class="at">'+timeAgo(a.at)+'</span>'+
-    '</button>';
-  }).join('');
-  document.querySelectorAll('#activity-list .arow').forEach(el =>
+
+  // Skip re-render (and the animation jump that comes with it) if nothing new happened
+  const newestAt = list[0].at;
+  if (newestAt === lastActivityAt) return;
+  lastActivityAt = newestAt;
+
+  const track = $('activity-track');
+  const cardsHtml = list.map(tickerCard).join('');
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Duplicate the list so the marquee animation can loop seamlessly (0% -> -50%)
+  track.innerHTML = reduceMotion ? cardsHtml : cardsHtml + cardsHtml;
+  track.style.animationDuration = Math.max(20, list.length * 4) + 's';
+
+  document.querySelectorAll('#activity-track .tcard').forEach(el =>
     el.addEventListener('click', () => { location.hash = '#/p/' + encodeURIComponent(el.dataset.p); }));
 }
 
