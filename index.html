@@ -159,7 +159,9 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .colcard:hover,.colcard:focus-visible{background:var(--panel2);outline:none}
 .colcard.complete{border-color:var(--gold)}
 .colcard img{width:64px;height:64px;object-fit:contain;margin:0 auto}
-.colcard .coln{font-size:13px;font-weight:600;line-height:1.25}
+/* min-height reserves space for 2 lines even when the name only needs 1, so
+   the progress bar/reward line below always lines up across cards */
+.colcard .coln{width:100%;font-size:13px;font-weight:600;line-height:1.25;min-height:2.5em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .colcard .colprog{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:15px;color:var(--dim)}
 .colcard.complete .colprog{color:var(--gold)}
 .colcard .colbar{width:100%;height:6px;border-radius:3px;background:var(--panel2);overflow:hidden}
