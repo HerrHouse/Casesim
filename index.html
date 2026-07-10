@@ -67,6 +67,7 @@ h1 span{color:var(--gold)}
 .tcard .wear{width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tcard .floatbar{width:100%}
 .tcard .tprice{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:14px;margin-top:1px}
+.tcard-complete{border-color:var(--gold);--rar:var(--gold);box-shadow:0 0 14px -4px rgba(228,174,57,.5)}
 
 @media(prefers-reduced-motion:reduce){
   #activity-track{animation:none}
@@ -163,6 +164,7 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .colcard .colbar{width:100%;height:6px;border-radius:3px;background:var(--panel2);overflow:hidden}
 .colcard .colbar i{display:block;height:100%;background:var(--milspec);border-radius:3px}
 .colcard.complete .colbar i{background:var(--gold)}
+.colreward{color:var(--gold);font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:12px;margin-top:2px}
 #colnote{color:var(--dim);font-size:12.5px;margin:-10px 0 16px}
 
 /* case detail view */
@@ -399,6 +401,16 @@ function tickerCard(a){
   '</button>';
 }
 
+function tickerCompletionCard(a){
+  return '<button class="tcard tcard-complete" data-p="'+esc(a.owner)+'">'+
+    '<div class="tuser">'+avatarHtml(a.owner, a.avatar)+'<span class="uname">'+esc(a.owner)+'</span></div>'+
+    (a.collectionImage ? '<img class="timg" loading="lazy" src="'+esc(a.collectionImage)+'" alt="">' : '')+
+    '<div class="tname gold-t">🏆 '+esc(a.collection)+'</div>'+
+    '<div class="wear">Collection complete!</div>'+
+    '<div class="tprice num gold-t">+'+money(a.reward)+'</div>'+
+  '</button>';
+}
+
 function renderActivity(list){
   list = (list || []).slice(0, ACTIVITY_SHOWN);
   if(!list.length){ $('activity').classList.add('hidden'); return; }
@@ -410,7 +422,7 @@ function renderActivity(list){
   lastActivityAt = newestAt;
 
   const track = $('activity-track');
-  const cardsHtml = list.map(tickerCard).join('');
+  const cardsHtml = list.map(a => a.kind === 'collectionComplete' ? tickerCompletionCard(a) : tickerCard(a)).join('');
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Duplicate the list so the marquee animation can loop seamlessly (0% -> -50%)
   track.innerHTML = reduceMotion ? cardsHtml : cardsHtml + cardsHtml;
@@ -645,11 +657,13 @@ function collectionsView(name){
   if(!p){ location.hash=''; return; }
   const collections = p.collections || [];
   const complete = collections.filter(c => c.total != null && c.owned >= c.total).length;
+  const totalEarned = collections.reduce((s,c) => s + (c.reward || 0), 0);
 
   $('colname').textContent = p.name + ' — collections';
   $('colstats').innerHTML = [
     ['Collections started', collections.length],
-    ['Completed', complete]
+    ['Completed', complete],
+    ['Earned from completions', money(totalEarned)]
   ].map(([l,v]) => '<div class="chip">'+l+'<b class="num">'+v+'</b></div>').join('');
 
   // Case-open tracking started before collection tracking did, so if that
@@ -666,6 +680,7 @@ function collectionsView(name){
           '<div class="coln">'+esc(c.name)+'</div>'+
           '<div class="colprog num">'+c.owned+' / '+(c.total != null ? c.total : '?')+'</div>'+
           '<div class="colbar"><i style="width:'+pct+'%"></i></div>'+
+          (isComplete ? '<div class="colreward num">🏆 +'+money(c.reward)+' earned</div>' : '')+
         '</div>';
       }).join('')
     : '<div id="msg" style="grid-column:1/-1"><b>Nothing tracked yet</b>opens made after this update will show up here</div>';
