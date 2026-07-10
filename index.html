@@ -129,7 +129,8 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 #filter-panel select:focus{outline:2px solid var(--milspec);outline-offset:1px}
 #filter-clear{align-self:flex-start;font-size:12px;padding:5px 10px;margin-top:2px}
 #grid,#salesgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
-.card{position:relative;background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.card{position:relative;background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px;width:100%;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.card:hover,.card:focus-visible{background:var(--panel2);outline:none}
 .card .imgbox{position:relative;background:radial-gradient(70% 70% at 50% 45%,color-mix(in srgb,var(--rar) 22%,transparent),transparent 75%);border-radius:6px;display:flex;justify-content:center;padding:6px 4px}
 .idtag{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:var(--text);font-family:'Chakra Petch',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 6px;border-radius:4px}
 .card img{width:100%;max-width:150px;aspect-ratio:4/3;object-fit:contain}
@@ -144,7 +145,8 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 
 /* case breakdown view */
 #cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
-.ccard{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px;text-align:center}
+.ccard{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px;text-align:center;width:100%;color:inherit;font:inherit;cursor:pointer}
+.ccard:hover,.ccard:focus-visible{background:var(--panel2);outline:none}
 .ccard img{width:100%;max-width:130px;aspect-ratio:4/3;object-fit:contain;margin:0 auto}
 .ccard .cn{font-size:13px;font-weight:600;line-height:1.25}
 .ccard .ct{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:20px;color:var(--gold)}
@@ -162,6 +164,33 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .colcard .colbar i{display:block;height:100%;background:var(--milspec);border-radius:3px}
 .colcard.complete .colbar i{background:var(--gold)}
 #colnote{color:var(--dim);font-size:12.5px;margin:-10px 0 16px}
+
+/* case detail view */
+#cdheader{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+#cdheader img{width:130px;height:98px;object-fit:contain;flex-shrink:0}
+#cdname{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:24px}
+.cdtier-head{display:flex;align-items:baseline;gap:8px;margin:18px 0 10px}
+.cdtier-head:first-child{margin-top:0}
+.cdtier-head .tn{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+.cdtier-head .tc{color:var(--dim);font-size:12px}
+.cdrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.cditem{background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.cditem img{width:100%;max-width:80px;aspect-ratio:4/3;object-fit:contain}
+.cditem .cdn{font-size:11px;color:var(--dim);line-height:1.2}
+
+/* item detail view */
+.itemdetail{max-width:340px;background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:10px;padding:20px;text-align:center}
+.itemdetail img.ivimg{width:100%;max-width:220px;aspect-ratio:4/3;object-fit:contain;margin:0 auto 8px}
+.itemdetail .ivname{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:18px;line-height:1.3}
+.itemdetail .ivrarity{font-size:12.5px;font-weight:600;margin-top:2px}
+.itemdetail .wear{color:var(--dim);font-size:12px;margin-top:8px}
+.itemdetail .floatbar{margin:4px 0 10px}
+.ivrows{display:flex;flex-direction:column;gap:0;margin-top:8px;text-align:left}
+.ivrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13px}
+.ivrow>span:first-child{color:var(--dim)}
+.ivlink{background:none;border:none;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px}
+.ivlink:hover{color:var(--milspec)}
+.ivmini{width:16px;height:16px;object-fit:contain;border-radius:50%}
 
 /* states */
 #msg{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:36px 20px;text-align:center;color:var(--dim)}
@@ -253,6 +282,20 @@ footer a{color:var(--dim)}
     </div>
     <div id="grid"></div>
     <div id="salesgrid" class="hidden"></div>
+  </section>
+
+  <section id="casedetail" class="hidden">
+    <button id="back4" class="backbtn">← Back</button>
+    <div id="cdheader">
+      <img id="cdimg" alt="">
+      <div id="cdname"></div>
+    </div>
+    <div id="cdgrid"></div>
+  </section>
+
+  <section id="itemview" class="hidden">
+    <button id="back5" class="backbtn">← Back</button>
+    <div id="itemwrap"></div>
   </section>
 
   <footer>Play in chat: ~cs wage · ~cs open &lt;case&gt; · ~cs inv · ~cs sell · Prices from Skinport · Not affiliated with Valve</footer>
@@ -434,7 +477,7 @@ function card(it){
   const floatBar = it.float != null && it.wear
     ? '<div class="wear">'+esc(it.wear)+' · '+it.float+'</div><div class="floatbar"><i style="left:'+(Math.min(1,Math.max(0,it.float))*100)+'%"></i></div>'
     : '<div class="wear">Vanilla</div>';
-  return '<div class="card" style="--rar:'+rar+'">'+
+  return '<button class="card" style="--rar:'+rar+'" data-id="'+it.id+'">'+
     '<div class="imgbox">'+
       (it.id != null ? '<div class="idtag num">#'+it.id+'</div>' : '')+
       '<img loading="lazy" src="'+esc(it.image||'')+'" alt="">'+
@@ -443,7 +486,7 @@ function card(it){
     '<div class="sn'+(it.gold?' gold-t':'')+'">'+esc(skin)+'</div></div>'+
     floatBar+
     '<div class="pr num">'+money(it.price)+'</div>'+
-  '</div>';
+  '</button>';
 }
 
 function soldCard(it){
@@ -452,14 +495,14 @@ function soldCard(it){
   const wearLine = it.float != null && it.wear
     ? '<div class="wear">'+esc(it.wear)+' · '+it.float+'</div>'
     : '<div class="wear">Vanilla</div>';
-  return '<div class="card" style="--rar:'+rar+'">'+
+  return '<button class="card" style="--rar:'+rar+'" data-id="'+it.id+'">'+
     '<div class="imgbox"><img loading="lazy" src="'+esc(it.image||'')+'" alt=""></div>'+
     '<div><div class="wn">'+(st?'<span class="st">ST™</span>':'')+esc(weapon)+'</div>'+
     '<div class="sn'+(it.gold?' gold-t':'')+'">'+esc(skin)+'</div></div>'+
     wearLine+
     '<div class="pr num">Sold '+money(it.price)+'</div>'+
     '<div class="wear">'+timeAgo(it.soldAt)+'</div>'+
-  '</div>';
+  '</button>';
 }
 
 let activeProfileTab = 'inv';
@@ -540,6 +583,9 @@ function renderProfileGrids(){
   const activeCount = Object.values(filters).filter(Boolean).length;
   $('filter-badge').textContent = activeCount;
   $('filter-badge').classList.toggle('hidden', activeCount === 0);
+
+  document.querySelectorAll('#grid .card, #salesgrid .card').forEach(el =>
+    el.addEventListener('click', () => { location.hash = '#/item/' + el.dataset.id; }));
 }
 
 function player(name){
@@ -583,12 +629,15 @@ function casesView(name){
   const imgs = DATA.caseImages || {};
   $('cgrid').innerHTML = opens.length
     ? opens.map(c =>
-        '<div class="ccard">'+
+        '<button class="ccard" data-case="'+esc(c.case)+'">'+
         (imgs[c.case] ? '<img loading="lazy" src="'+esc(imgs[c.case])+'" alt="">' : '')+
         '<div class="cn">'+esc(c.case)+'</div>'+
         '<div class="ct num">×'+c.count+'</div>'+
-        '</div>').join('')
+        '</button>').join('')
     : '<div id="msg" style="grid-column:1/-1"><b>Nothing tracked yet</b>opens made after this update will show up here</div>';
+
+  document.querySelectorAll('#cgrid .ccard').forEach(el =>
+    el.addEventListener('click', () => { location.hash = '#/case/' + encodeURIComponent(el.dataset.case); }));
 }
 
 function collectionsView(name){
@@ -622,22 +671,122 @@ function collectionsView(name){
     : '<div id="msg" style="grid-column:1/-1"><b>Nothing tracked yet</b>opens made after this update will show up here</div>';
 }
 
+// --- Case detail view (full drop pool, like CS2's own unlock screen) ---
+let CASES = null; // full case catalog, fetched once and cached for the page session
+
+async function loadCasesCatalog(){
+  if (CASES) return CASES;
+  const res = await fetch('cases.json', {cache:'no-store'});
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  CASES = await res.json();
+  return CASES;
+}
+
+function caseDetailView(name){
+  $('cdname').textContent = name;
+  $('cdimg').src = '';
+  $('cdgrid').innerHTML = '<div id="msg" style="grid-column:1/-1"><b>Loading…</b>fetching case data</div>';
+
+  loadCasesCatalog().then(catalog => {
+    // Bail if the user has since navigated away from this case
+    const stillHere = decodeURIComponent((location.hash.match(/^#\/case\/(.+)$/)||[])[1] || '') === name;
+    if (!stillHere) return;
+
+    const c = catalog.find(x => x.name === name);
+    if (!c) {
+      $('cdgrid').innerHTML = '<div id="msg" style="grid-column:1/-1"><b>Case not found</b></div>';
+      return;
+    }
+    $('cdimg').src = c.image || '';
+    $('cdname').textContent = c.name;
+
+    const tiers = [...c.tiers, c.rare];
+    $('cdgrid').innerHTML = tiers.map(t => {
+      const rar = RARITY[t.name] || 'var(--gold)';
+      return '<div class="cdtier-head"><span class="tn">'+t.emote+' '+esc(t.name)+'</span><span class="tc">'+(t.chance*100).toFixed(2)+'% chance</span></div>'+
+        '<div class="cdrow">'+t.items.map(it =>
+          '<div class="cditem" style="--rar:'+rar+'">'+
+            '<img loading="lazy" src="'+esc(it.image||'')+'" alt="">'+
+            '<div class="cdn">'+esc(it.name)+'</div>'+
+          '</div>'
+        ).join('')+'</div>';
+    }).join('');
+  }).catch(err => {
+    $('cdgrid').innerHTML = '<div id="msg" style="grid-column:1/-1"><b>Failed to load case data</b>'+esc(err.message)+'</div>';
+  });
+}
+
+// --- Item detail view (a specific unboxed item) ---
+function findItem(id){
+  id = Number(id);
+  for (const [owner, inv] of Object.entries(DATA.inventories || {})) {
+    const found = inv.find(i => i.id === id);
+    if (found) return { owner, item: found, sold: false };
+  }
+  for (const [owner, sold] of Object.entries(DATA.sales || {})) {
+    const found = sold.find(i => i.id === id);
+    if (found) return { owner, item: found, sold: true };
+  }
+  return null;
+}
+
+function itemView(id){
+  const found = findItem(id);
+  if (!found) {
+    $('itemwrap').innerHTML = '<div id="msg"><b>Item not found</b>it may have been sold and aged out of history</div>';
+    return;
+  }
+  const { owner, item, sold } = found;
+  const {weapon, skin, st} = splitName(item.name);
+  const rar = RARITY[item.rarity] || 'var(--milspec)';
+  const floatBar = item.float != null && item.wear
+    ? '<div class="wear">'+esc(item.wear)+' · '+item.float+'</div><div class="floatbar"><i style="left:'+(Math.min(1,Math.max(0,item.float))*100)+'%"></i></div>'
+    : '<div class="wear">Vanilla</div>';
+
+  $('itemwrap').innerHTML =
+    '<div class="itemdetail" style="--rar:'+rar+'">'+
+      '<img class="ivimg" loading="lazy" src="'+esc(item.image||'')+'" alt="">'+
+      '<div class="ivname'+(item.gold?' gold-t':'')+'">'+(st?'ST™ ':'')+esc(weapon)+' | '+esc(skin)+'</div>'+
+      '<div class="ivrarity" style="color:'+rar+'">'+esc(item.rarity)+'</div>'+
+      floatBar+
+      '<div class="ivrows">'+
+        '<div class="ivrow"><span>Collection</span>'+(item.collection ? '<button class="ivlink" id="iv-col">'+(item.collectionImage?'<img class="ivmini" src="'+esc(item.collectionImage)+'">':'')+esc(item.collection)+'</button>' : '<span>—</span>')+'</div>'+
+        '<div class="ivrow"><span>Case</span><button class="ivlink" id="iv-case">'+esc(item.case)+'</button></div>'+
+        '<div class="ivrow"><span>Owner</span><button class="ivlink" id="iv-owner">'+esc(owner)+'</button></div>'+
+        '<div class="ivrow"><span>'+(sold?'Sold for':'Worth')+'</span><b class="num">'+money(item.price)+'</b></div>'+
+        (sold ? '<div class="ivrow"><span>Sold</span><span>'+timeAgo(item.soldAt)+'</span></div>' : '')+
+      '</div>'+
+    '</div>';
+
+  if (item.collection) $('iv-col').addEventListener('click', () => { location.hash = '#/col/' + encodeURIComponent(owner); });
+  $('iv-case').addEventListener('click', () => { location.hash = '#/case/' + encodeURIComponent(item.case); });
+  $('iv-owner').addEventListener('click', () => { location.hash = '#/p/' + encodeURIComponent(owner); });
+}
+
 // scrollTop=true on a real navigation (hash change / first load); false on a
 // background data refresh, so auto-refresh doesn't yank the page back to top.
 function route(scrollTop){
   const mp = location.hash.match(/^#\/p\/(.+)$/);
   const mc = location.hash.match(/^#\/c\/(.+)$/);
   const mcol = location.hash.match(/^#\/col\/(.+)$/);
+  const mcd = location.hash.match(/^#\/case\/(.+)$/);
+  const mit = location.hash.match(/^#\/item\/(.+)$/);
   const onPlayer = !!(mp && DATA);
   const onCases = !!(mc && DATA);
   const onCollections = !!(mcol && DATA);
-  $('board').classList.toggle('hidden', onPlayer || onCases || onCollections);
+  const onCaseDetail = !!(mcd && DATA);
+  const onItem = !!(mit && DATA);
+  $('board').classList.toggle('hidden', onPlayer || onCases || onCollections || onCaseDetail || onItem);
   $('player').classList.toggle('hidden', !onPlayer);
   $('casesview').classList.toggle('hidden', !onCases);
   $('collectionsview').classList.toggle('hidden', !onCollections);
+  $('casedetail').classList.toggle('hidden', !onCaseDetail);
+  $('itemview').classList.toggle('hidden', !onItem);
   if(onPlayer) player(decodeURIComponent(mp[1]));
   if(onCases) casesView(decodeURIComponent(mc[1]));
   if(onCollections) collectionsView(decodeURIComponent(mcol[1]));
+  if(onCaseDetail) caseDetailView(decodeURIComponent(mcd[1]));
+  if(onItem) itemView(mit[1]);
   if(scrollTop) window.scrollTo(0,0);
 }
 
@@ -657,6 +806,8 @@ function render(scrollTop){
 $('back').addEventListener('click', () => { location.hash=''; });
 $('back2').addEventListener('click', () => { location.hash=''; });
 $('back3').addEventListener('click', () => { location.hash=''; });
+$('back4').addEventListener('click', () => { location.hash=''; });
+$('back5').addEventListener('click', () => { location.hash=''; });
 $('tab-inv').addEventListener('click', () => showProfileTab('inv'));
 $('tab-sales').addEventListener('click', () => showProfileTab('sales'));
 $('tab-cases').addEventListener('click', () => {
