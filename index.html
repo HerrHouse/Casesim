@@ -155,7 +155,8 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 
 /* collection view */
 #colgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
-.colcard{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.colcard{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;width:100%;color:inherit;font:inherit;cursor:pointer}
+.colcard:hover,.colcard:focus-visible{background:var(--panel2);outline:none}
 .colcard.complete{border-color:var(--gold)}
 .colcard img{width:64px;height:64px;object-fit:contain;margin:0 auto}
 .colcard .coln{font-size:13px;font-weight:600;line-height:1.25}
@@ -193,6 +194,19 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .ivlink{background:none;border:none;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px}
 .ivlink:hover{color:var(--milspec)}
 .ivmini{width:16px;height:16px;object-fit:contain;border-radius:50%}
+
+/* collection catalogue view (per-player ownership checklist) - intentionally
+   separate classes from the case detail view above, not shared with it */
+#ccheader{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+#ccheader img{width:64px;height:64px;object-fit:contain;flex-shrink:0}
+#ccname{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:24px}
+#ccgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.ccitem{position:relative;background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;opacity:.55}
+.ccitem.owned{opacity:1;border-color:var(--up)}
+.ccitem img{width:100%;max-width:80px;aspect-ratio:4/3;object-fit:contain}
+.ccitem .ccn{font-size:11px;color:var(--dim);line-height:1.2}
+.ccitem.owned .ccn{color:var(--text)}
+.cccheck{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:var(--up);color:#0a0f14;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;line-height:1}
 
 /* states */
 #msg{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:36px 20px;text-align:center;color:var(--dim)}
@@ -258,6 +272,16 @@ footer a{color:var(--dim)}
     <div id="colstats" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px"></div>
     <div id="colnote" class="hidden">Collection tracking was added later, so this only counts opens since then.</div>
     <div id="colgrid"></div>
+  </section>
+
+  <section id="collectioncatalog" class="hidden">
+    <button id="back6" class="backbtn">← Back</button>
+    <div id="ccheader">
+      <img id="ccimg" alt="">
+      <div id="ccname"></div>
+    </div>
+    <div id="ccstats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+    <div id="ccgrid"></div>
   </section>
 
   <section id="player" class="hidden">
@@ -675,15 +699,20 @@ function collectionsView(name){
     ? collections.map(c => {
         const pct = c.total ? Math.min(100, Math.round(c.owned / c.total * 100)) : 0;
         const isComplete = c.total != null && c.owned >= c.total;
-        return '<div class="colcard'+(isComplete?' complete':'')+'">'+
+        return '<button class="colcard'+(isComplete?' complete':'')+'" data-col="'+esc(c.name)+'">'+
           (c.image ? '<img loading="lazy" src="'+esc(c.image)+'" alt="">' : '')+
           '<div class="coln">'+esc(c.name)+'</div>'+
           '<div class="colprog num">'+c.owned+' / '+(c.total != null ? c.total : '?')+'</div>'+
           '<div class="colbar"><i style="width:'+pct+'%"></i></div>'+
           (isComplete ? '<div class="colreward num">🏆 +'+money(c.reward)+' earned</div>' : '')+
-        '</div>';
+        '</button>';
       }).join('')
     : '<div id="msg" style="grid-column:1/-1"><b>Nothing tracked yet</b>opens made after this update will show up here</div>';
+
+  document.querySelectorAll('#colgrid .colcard').forEach(el =>
+    el.addEventListener('click', () => {
+      location.hash = '#/colcat/' + encodeURIComponent(p.name) + '/' + encodeURIComponent(el.dataset.col);
+    }));
 }
 
 // --- Case detail view (full drop pool, like CS2's own unlock screen) ---
@@ -778,6 +807,62 @@ function itemView(id){
   $('iv-owner').addEventListener('click', () => { location.hash = '#/p/' + encodeURIComponent(owner); });
 }
 
+// --- Collection catalogue view: every skin in a collection, checkmarked for
+// whether a specific player owns it. Deliberately separate from the case
+// detail view above (own fetch, own cache, own render function). ---
+let COLLECTIONS_CATALOG = null;
+
+async function loadCollectionsCatalog(){
+  if (COLLECTIONS_CATALOG) return COLLECTIONS_CATALOG;
+  const res = await fetch('collections-catalog.json', {cache:'no-store'});
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  COLLECTIONS_CATALOG = await res.json();
+  return COLLECTIONS_CATALOG;
+}
+
+function collectionCatalogView(owner, name){
+  $('ccname').textContent = name;
+  $('ccimg').src = '';
+  $('ccstats').innerHTML = '';
+  $('ccgrid').innerHTML = '<div id="msg" style="grid-column:1/-1"><b>Loading…</b>fetching collection data</div>';
+
+  loadCollectionsCatalog().then(catalog => {
+    // Bail if the user has since navigated away from this page
+    const m = location.hash.match(/^#\/colcat\/([^/]+)\/(.+)$/);
+    const stillHere = !!m && decodeURIComponent(m[1]) === owner && decodeURIComponent(m[2]) === name;
+    if (!stillHere) return;
+
+    const c = catalog.find(x => x.name === name);
+    if (!c) {
+      $('ccgrid').innerHTML = '<div id="msg" style="grid-column:1/-1"><b>Collection not found</b></div>';
+      return;
+    }
+
+    const p = DATA.players.find(x => x.name === owner);
+    const entry = p && (p.collections || []).find(x => x.name === name);
+    const ownedNames = entry ? entry.ownedNames : [];
+
+    $('ccimg').src = c.image || '';
+    $('ccname').textContent = c.name;
+    $('ccstats').innerHTML = [
+      ['Owner', owner],
+      ['Owned', ownedNames.length + ' / ' + c.items.length]
+    ].map(([l,v]) => '<div class="chip">'+l+'<b class="num">'+esc(String(v))+'</b></div>').join('');
+
+    $('ccgrid').innerHTML = c.items.map(it => {
+      const owned = ownedNames.includes(it.name);
+      const rar = RARITY[it.rarity] || 'var(--milspec)';
+      return '<div class="ccitem'+(owned?' owned':'')+'" style="--rar:'+rar+'">'+
+        (owned ? '<div class="cccheck">✓</div>' : '')+
+        '<img loading="lazy" src="'+esc(it.image||'')+'" alt="">'+
+        '<div class="ccn">'+esc(it.name)+'</div>'+
+      '</div>';
+    }).join('');
+  }).catch(err => {
+    $('ccgrid').innerHTML = '<div id="msg" style="grid-column:1/-1"><b>Failed to load collection data</b>'+esc(err.message)+'</div>';
+  });
+}
+
 // scrollTop=true on a real navigation (hash change / first load); false on a
 // background data refresh, so auto-refresh doesn't yank the page back to top.
 function route(scrollTop){
@@ -786,22 +871,26 @@ function route(scrollTop){
   const mcol = location.hash.match(/^#\/col\/(.+)$/);
   const mcd = location.hash.match(/^#\/case\/(.+)$/);
   const mit = location.hash.match(/^#\/item\/(.+)$/);
+  const mcc = location.hash.match(/^#\/colcat\/([^/]+)\/(.+)$/);
   const onPlayer = !!(mp && DATA);
   const onCases = !!(mc && DATA);
   const onCollections = !!(mcol && DATA);
   const onCaseDetail = !!(mcd && DATA);
   const onItem = !!(mit && DATA);
-  $('board').classList.toggle('hidden', onPlayer || onCases || onCollections || onCaseDetail || onItem);
+  const onCollectionCatalog = !!(mcc && DATA);
+  $('board').classList.toggle('hidden', onPlayer || onCases || onCollections || onCaseDetail || onItem || onCollectionCatalog);
   $('player').classList.toggle('hidden', !onPlayer);
   $('casesview').classList.toggle('hidden', !onCases);
   $('collectionsview').classList.toggle('hidden', !onCollections);
   $('casedetail').classList.toggle('hidden', !onCaseDetail);
   $('itemview').classList.toggle('hidden', !onItem);
+  $('collectioncatalog').classList.toggle('hidden', !onCollectionCatalog);
   if(onPlayer) player(decodeURIComponent(mp[1]));
   if(onCases) casesView(decodeURIComponent(mc[1]));
   if(onCollections) collectionsView(decodeURIComponent(mcol[1]));
   if(onCaseDetail) caseDetailView(decodeURIComponent(mcd[1]));
   if(onItem) itemView(mit[1]);
+  if(onCollectionCatalog) collectionCatalogView(decodeURIComponent(mcc[1]), decodeURIComponent(mcc[2]));
   if(scrollTop) window.scrollTo(0,0);
 }
 
@@ -823,6 +912,11 @@ $('back2').addEventListener('click', () => { location.hash=''; });
 $('back3').addEventListener('click', () => { location.hash=''; });
 $('back4').addEventListener('click', () => { location.hash=''; });
 $('back5').addEventListener('click', () => { location.hash=''; });
+$('back6').addEventListener('click', () => {
+  // Return to that player's Collections page rather than the leaderboard
+  const m = location.hash.match(/^#\/colcat\/([^/]+)\/(.+)$/);
+  location.hash = m ? '#/col/' + m[1] : '';
+});
 $('tab-inv').addEventListener('click', () => showProfileTab('inv'));
 $('tab-sales').addEventListener('click', () => showProfileTab('sales'));
 $('tab-cases').addEventListener('click', () => {
