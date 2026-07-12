@@ -120,6 +120,8 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .tabbtn{background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
 .tabbtn:hover{color:var(--text);border-color:#3a4556}
 .tabbtn.active{background:var(--panel2);color:var(--text);border-color:var(--milspec)}
+.tabbtn:disabled{opacity:.4;cursor:not-allowed}
+.tabbtn:disabled:hover{color:var(--dim);border-color:var(--line)}
 
 /* inventory filters */
 #filterwrap{position:relative}
@@ -143,6 +145,16 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .floatbar i{position:absolute;top:-3px;width:2px;height:10px;background:#fff;border-radius:1px}
 .card .pr{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:15px;margin-top:auto}
 .gold-t{color:var(--gold)}
+
+/* trade-up item picker */
+#selectbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+#select-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#select-count{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:13px;color:var(--dim)}
+#select-target{font-size:12px;color:var(--dim)}
+.checkdot{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:rgba(0,0,0,.35)}
+.card.selected .checkdot{background:var(--up);border-color:var(--up);display:flex;align-items:center;justify-content:center;color:#0a0f14;font-size:12px;font-weight:700}
+.card.select-disabled{opacity:.35;cursor:not-allowed}
+.card.select-disabled:hover{background:var(--panel)}
 
 /* case breakdown view */
 #cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
@@ -306,6 +318,15 @@ footer a{color:var(--dim)}
           <label>Weapon<select id="f-weapon"><option value="">All</option></select></label>
           <button id="filter-clear" class="tabbtn">Clear filters</button>
         </div>
+      </div>
+    </div>
+    <div id="selectbar">
+      <button id="select-toggle" class="tabbtn">Select items for trade-up</button>
+      <div id="select-controls" class="hidden">
+        <span id="select-count" class="num">0/10 selected</span>
+        <span id="select-target" class="hidden"></span>
+        <button id="select-copy" class="tabbtn" disabled>Copy command</button>
+        <button id="select-cancel" class="tabbtn">Cancel</button>
       </div>
     </div>
     <div id="grid"></div>
@@ -515,9 +536,13 @@ function card(it){
   const floatBar = it.float != null && it.wear
     ? '<div class="wear">'+esc(it.wear)+' · '+it.float+'</div><div class="floatbar"><i style="left:'+(Math.min(1,Math.max(0,it.float))*100)+'%"></i></div>'
     : '<div class="wear">Vanilla</div>';
-  return '<button class="card" style="--rar:'+rar+'" data-id="'+it.id+'">'+
+  const selected = selectMode && selectedIds.includes(it.id);
+  const disabled = selectMode && !selected && !matchesSelectionTarget(it);
+  const cls = 'card' + (selected ? ' selected' : '') + (disabled ? ' select-disabled' : '');
+  return '<button class="'+cls+'" style="--rar:'+rar+'" data-id="'+it.id+'">'+
     '<div class="imgbox">'+
       (it.id != null ? '<div class="idtag num">#'+it.id+'</div>' : '')+
+      (selectMode ? '<div class="checkdot">'+(selected?'✓':'')+'</div>' : '')+
       '<img loading="lazy" src="'+esc(it.image||'')+'" alt="">'+
     '</div>'+
     '<div><div class="wn">'+(st?'<span class="st">ST™</span>':'')+esc(weapon)+'</div>'+
@@ -551,6 +576,26 @@ function showProfileTab(tab){
   $('tab-sales').classList.toggle('active', tab==='sales');
   $('grid').classList.toggle('hidden', tab!=='inv');
   $('salesgrid').classList.toggle('hidden', tab!=='sales');
+  $('selectbar').classList.toggle('hidden', tab!=='inv');
+  // Selecting items for a trade-up only makes sense while looking at the
+  // inventory itself, not sold history
+  if (tab !== 'inv' && selectMode) exitSelectMode();
+}
+
+function exitSelectMode(){
+  selectMode = false;
+  selectedIds = [];
+  $('select-toggle').classList.remove('hidden');
+  $('select-controls').classList.add('hidden');
+  renderProfileGrids();
+}
+
+function enterSelectMode(){
+  selectMode = true;
+  selectedIds = [];
+  $('select-toggle').classList.add('hidden');
+  $('select-controls').classList.remove('hidden');
+  renderProfileGrids();
 }
 
 // --- Inventory/sales filters (exterior, quality, collection, weapon) ---
@@ -602,6 +647,54 @@ function populateFilterOptions(items){
   filters.weapon = $('f-weapon').value;
 }
 
+// --- Trade-up item picker (infrastructure - ~cs tradeup itself doesn't
+// exist yet). Selecting items builds a ready-to-paste chat command instead
+// of submitting anything live - the site has no way to talk back to the
+// bot except through the same chat commands a player would type anyway. ---
+let selectMode = false;
+let selectedIds = [];
+const TRADEUP_TIER_LADDER = ['Mil-Spec', 'Restricted', 'Classified', 'Covert'];
+
+// Covert has nothing above it to trade up into, and items with no tracked
+// collection (knives/gloves) were never part of one to begin with.
+function eligibleForTradeUp(it){
+  return !!it.collection && TRADEUP_TIER_LADDER.includes(it.rarity) && it.rarity !== 'Covert';
+}
+
+function matchesSelectionTarget(it){
+  if (!eligibleForTradeUp(it)) return false;
+  if (selectedIds.length === 0) return true;
+  const first = currentInv.find(x => x.id === selectedIds[0]);
+  if (!first) return true;
+  return it.collection === first.collection && it.rarity === first.rarity;
+}
+
+function updateSelectBar(){
+  $('select-count').textContent = selectedIds.length + '/10 selected';
+  if (selectedIds.length > 0) {
+    const first = currentInv.find(x => x.id === selectedIds[0]);
+    $('select-target').textContent = first ? '· ' + first.rarity + ' · ' + first.collection : '';
+    $('select-target').classList.remove('hidden');
+  } else {
+    $('select-target').classList.add('hidden');
+  }
+  $('select-copy').disabled = selectedIds.length === 0;
+}
+
+function toggleItemSelection(id){
+  const it = currentInv.find(x => x.id === id);
+  if (!it) return;
+  const idx = selectedIds.indexOf(id);
+  if (idx !== -1) {
+    selectedIds.splice(idx, 1);
+  } else {
+    if (selectedIds.length >= 10) return; // full
+    if (!matchesSelectionTarget(it)) return; // wrong collection/tier
+    selectedIds.push(id);
+  }
+  renderProfileGrids();
+}
+
 function renderProfileGrids(){
   const filteredInv = currentInv.filter(matchesFilters);
   const filteredSold = currentSold.filter(matchesFilters);
@@ -622,8 +715,15 @@ function renderProfileGrids(){
   $('filter-badge').textContent = activeCount;
   $('filter-badge').classList.toggle('hidden', activeCount === 0);
 
-  document.querySelectorAll('#grid .card, #salesgrid .card').forEach(el =>
+  document.querySelectorAll('#grid .card').forEach(el =>
+    el.addEventListener('click', () => {
+      if (selectMode) { toggleItemSelection(Number(el.dataset.id)); return; }
+      location.hash = '#/item/' + el.dataset.id;
+    }));
+  document.querySelectorAll('#salesgrid .card').forEach(el =>
     el.addEventListener('click', () => { location.hash = '#/item/' + el.dataset.id; }));
+
+  if (selectMode) updateSelectBar();
 }
 
 function player(name){
@@ -927,6 +1027,21 @@ $('tab-cases').addEventListener('click', () => {
 $('tab-collections').addEventListener('click', () => {
   if(currentPlayerName) location.hash = '#/col/' + encodeURIComponent(currentPlayerName);
 });
+$('select-toggle').addEventListener('click', enterSelectMode);
+$('select-cancel').addEventListener('click', exitSelectMode);
+$('select-copy').addEventListener('click', async () => {
+  if (selectedIds.length === 0) return;
+  const cmd = '~cs tradeup ' + selectedIds.join(' ');
+  try {
+    await navigator.clipboard.writeText(cmd);
+    const btn = $('select-copy');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  } catch (err) {
+    prompt('Copy this command:', cmd);
+  }
+});
 $('search').addEventListener('input', e => board(e.target.value));
 
 $('filter-toggle').addEventListener('click', () => { $('filter-panel').classList.toggle('hidden'); });
@@ -947,6 +1062,10 @@ window.addEventListener('hashchange', () => {
   activeProfileTab = 'inv';
   filters = { wear: '', rarity: '', case: '', weapon: '' };
   $('filter-panel').classList.add('hidden');
+  selectMode = false;
+  selectedIds = [];
+  $('select-toggle').classList.remove('hidden');
+  $('select-controls').classList.add('hidden');
   route(true);
 });
 
