@@ -591,11 +591,17 @@ function exitSelectMode(){
 }
 
 function enterSelectMode(){
-  selectMode = true;
-  selectedIds = [];
-  $('select-toggle').classList.add('hidden');
-  $('select-controls').classList.remove('hidden');
-  renderProfileGrids();
+  // eligibleForTradeUp() needs the collections catalog (next-tier check) and
+  // the case catalog (Covert -> Knife/Glove pools) loaded first, so
+  // eligibility is correct from the first render instead of everything
+  // looking disabled.
+  Promise.all([loadCollectionsCatalog(), loadCasesCatalog()]).then(() => {
+    selectMode = true;
+    selectedIds = [];
+    $('select-toggle').classList.add('hidden');
+    $('select-controls').classList.remove('hidden');
+    renderProfileGrids();
+  });
 }
 
 // --- Inventory/sales filters (exterior, quality, collection, weapon) ---
@@ -647,38 +653,82 @@ function populateFilterOptions(items){
   filters.weapon = $('f-weapon').value;
 }
 
-// --- Trade-up item picker (infrastructure - ~cs tradeup itself doesn't
-// exist yet). Selecting items builds a ready-to-paste chat command instead
-// of submitting anything live - the site has no way to talk back to the
-// bot except through the same chat commands a player would type anyway. ---
+// --- Trade-up item picker. Selecting items builds a ready-to-paste
+// ~cs tradeup chat command instead of submitting anything live - the site
+// has no way to talk back to the bot except through the same chat commands
+// a player would type anyway. ---
 let selectMode = false;
 let selectedIds = [];
 const TRADEUP_TIER_LADDER = ['Mil-Spec', 'Restricted', 'Classified', 'Covert'];
+const TRADEUP_SIZE = 10;
+const COVERT_TRADEUP_SIZE = 5; // Covert -> Knife/Glove is a 5-for-1 contract
 
-// Covert has nothing above it to trade up into, and items with no tracked
-// collection (knives/gloves) were never part of one to begin with.
-function eligibleForTradeUp(it){
-  return !!it.collection && TRADEUP_TIER_LADDER.includes(it.rarity) && it.rarity !== 'Covert';
+function nextTradeUpTier(tier){
+  const idx = TRADEUP_TIER_LADDER.indexOf(tier);
+  if (idx === -1 || idx === TRADEUP_TIER_LADDER.length - 1) return null;
+  return TRADEUP_TIER_LADDER[idx + 1];
 }
 
+// A real trade-up needs the item's OWN collection to have something at the
+// next tier up - some collections top out early (e.g. The 2021 Train
+// Collection's highest tier is Covert, so its Covert items have nowhere to
+// go and can't be used as inputs at all), so this can't be a flat tier check.
+function collectionHasNextTier(collectionName, tier){
+  if (!COLLECTIONS_CATALOG) return false;
+  const next = nextTradeUpTier(tier);
+  if (!next) return false;
+  const col = COLLECTIONS_CATALOG.find(c => c.name === collectionName);
+  return !!col && col.items.some(i => i.rarity === next);
+}
+
+// The Knife/Glove pool a Covert item's collection maps to, via the case
+// that shares that collection (cases.json's "collection" field). Filtered
+// by StatTrak when needed - gloves never have a StatTrak variant in real
+// CS2, so a few glove-only cases (Glove Case, Revolution Case, ...) have no
+// valid outcome at all for a StatTrak-only Covert trade-up.
+function rareOutcomesFor(collectionName, stattrak){
+  if (!CASES) return [];
+  const c = CASES.find(x => x.collection === collectionName);
+  if (!c) return [];
+  return stattrak ? c.rare.items.filter(i => i.stattrak) : c.rare.items;
+}
+
+// Items with no tracked collection (knives/gloves) were never part of one
+// to begin with, so they can never be a trade-up INPUT (they can be an
+// OUTPUT, via the Covert branch below).
+function eligibleForTradeUp(it){
+  if (!it.collection || !TRADEUP_TIER_LADDER.includes(it.rarity)) return false;
+  if (it.rarity === 'Covert') return rareOutcomesFor(it.collection, !!it.stattrak).length > 0;
+  return collectionHasNextTier(it.collection, it.rarity);
+}
+
+function requiredSelectionSize(){
+  if (selectedIds.length === 0) return TRADEUP_SIZE;
+  const first = currentInv.find(x => x.id === selectedIds[0]);
+  return (first && first.rarity === 'Covert') ? COVERT_TRADEUP_SIZE : TRADEUP_SIZE;
+}
+
+// Real trade-ups can mix collections across the inputs - only the tier
+// and StatTrak-ness have to match (the output inherits StatTrak status).
 function matchesSelectionTarget(it){
   if (!eligibleForTradeUp(it)) return false;
   if (selectedIds.length === 0) return true;
   const first = currentInv.find(x => x.id === selectedIds[0]);
   if (!first) return true;
-  return it.collection === first.collection && it.rarity === first.rarity;
+  return it.rarity === first.rarity && !!it.stattrak === !!first.stattrak;
 }
 
 function updateSelectBar(){
-  $('select-count').textContent = selectedIds.length + '/10 selected';
+  const need = requiredSelectionSize();
+  $('select-count').textContent = selectedIds.length + '/' + need + ' selected';
   if (selectedIds.length > 0) {
     const first = currentInv.find(x => x.id === selectedIds[0]);
-    $('select-target').textContent = first ? '· ' + first.rarity + ' · ' + first.collection : '';
+    $('select-target').textContent = first ? '· ' + first.rarity + (first.stattrak ? ' · StatTrak™' : '') : '';
     $('select-target').classList.remove('hidden');
   } else {
     $('select-target').classList.add('hidden');
   }
-  $('select-copy').disabled = selectedIds.length === 0;
+  $('select-copy').disabled = selectedIds.length !== need;
 }
 
 function toggleItemSelection(id){
@@ -688,8 +738,8 @@ function toggleItemSelection(id){
   if (idx !== -1) {
     selectedIds.splice(idx, 1);
   } else {
-    if (selectedIds.length >= 10) return; // full
-    if (!matchesSelectionTarget(it)) return; // wrong collection/tier
+    if (selectedIds.length >= requiredSelectionSize()) return; // full
+    if (!matchesSelectionTarget(it)) return; // wrong tier/StatTrak/ineligible
     selectedIds.push(id);
   }
   renderProfileGrids();
