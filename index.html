@@ -207,6 +207,47 @@ h2{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:600;letter-s
 .ivrow>span:first-child{color:var(--dim)}
 .ivlink{background:none;border:none;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px}
 .ivlink:hover{color:var(--milspec)}
+
+/* trade-up contract view */
+#tuheader{margin-bottom:16px}
+#tuname{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:24px}
+#tutierbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.tulabel{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-family:'Chakra Petch',sans-serif;font-weight:600}
+#tutiers,#tuquality{display:flex;gap:6px;flex-wrap:wrap}
+.tutier-btn{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 12px;color:var(--dim);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.tutier-btn.active{color:var(--text);box-shadow:inset 0 0 0 1px var(--rar,var(--milspec));border-color:var(--rar,var(--milspec))}
+.tutier-btn:disabled{opacity:.35;cursor:not-allowed}
+
+#tuslots{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-bottom:18px}
+.tuslot{position:relative;background:var(--panel);border:1px dashed var(--line);border-radius:8px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;min-height:134px;cursor:pointer;color:inherit;font:inherit}
+.tuslot:hover{background:var(--panel2)}
+.tuslot .tuplus{font-size:22px;color:var(--dim);line-height:1}
+.tuslot.filled{border-style:solid;border-bottom:3px solid var(--rar,var(--milspec));justify-content:flex-start}
+.tuslot.filled img{width:100%;max-width:80px;aspect-ratio:4/3;object-fit:contain}
+.tuslot .tsn{font-size:10.5px;color:var(--dim);line-height:1.2}
+.tuslot .tsremove{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.55);color:var(--text);display:flex;align-items:center;justify-content:center;font-size:11px}
+
+#tupicker{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:18px}
+#tupicker-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#tupicker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;max-height:360px;overflow-y:auto}
+.tupick{background:var(--panel2);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;cursor:pointer;color:inherit;font:inherit}
+.tupick:hover{background:#242b38}
+.tupick img{width:100%;max-width:80px;aspect-ratio:4/3;object-fit:contain}
+.tupick .tsn{font-size:10.5px;color:var(--dim);line-height:1.2}
+
+#tuoutcomes{margin-bottom:18px}
+#tuoutcomes h2{margin-bottom:10px}
+#tuoutcomes-note{color:var(--dim);font-size:12.5px;margin-bottom:12px}
+#tuoutcomes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.tuoutcome{background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--rar,var(--milspec));border-radius:8px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.tuoutcome img{width:100%;max-width:80px;aspect-ratio:4/3;object-fit:contain}
+.tuoutcome .tsn{font-size:10.5px;color:var(--dim);line-height:1.2}
+.tuoutcome .tupct{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:14px;color:var(--gold)}
+.tuoutcome .tufloat{font-size:10px;color:var(--dim)}
+
+#tubar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;bottom:0;background:var(--bg);padding:12px 0;border-top:1px solid var(--line);margin-top:4px}
+#tu-count{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:13px;color:var(--dim)}
+#tu-hint{color:var(--dim);font-size:12.5px;margin-bottom:14px}
 .ivmini{width:16px;height:16px;object-fit:contain;border-radius:50%}
 
 /* collection catalogue view (per-player ownership checklist) - intentionally
@@ -308,6 +349,7 @@ footer a{color:var(--dim)}
         <button id="tab-sales" class="tabbtn">Sales</button>
         <button id="tab-cases" class="tabbtn">Cases opened →</button>
         <button id="tab-collections" class="tabbtn">Collections →</button>
+        <button id="tab-tradeup" class="tabbtn">Trade Up →</button>
       </div>
       <div id="filterwrap">
         <button id="filter-toggle" class="tabbtn">Filters<span id="filter-badge" class="filter-badge hidden">0</span> ▾</button>
@@ -345,6 +387,44 @@ footer a{color:var(--dim)}
   <section id="itemview" class="hidden">
     <button id="back5" class="backbtn">← Back</button>
     <div id="itemwrap"></div>
+  </section>
+
+  <section id="tradeupview" class="hidden">
+    <button id="back7" class="backbtn">← Back</button>
+    <div id="tuheader"><div id="tuname">Trade-Up Contract</div></div>
+    <div id="tu-hint">Same rules as CS2: 10 same-tier inputs (5 for Covert), all Normal or all StatTrak™. Build a contract below, then copy the command into chat to complete it.</div>
+
+    <div id="tutierbar">
+      <div class="tulabel">Tier</div>
+      <div id="tutiers"></div>
+      <div class="tulabel">Quality</div>
+      <div id="tuquality">
+        <button id="tu-normal" class="tutier-btn active">Normal</button>
+        <button id="tu-stattrak" class="tutier-btn">StatTrak™</button>
+      </div>
+    </div>
+
+    <div id="tuslots"></div>
+
+    <div id="tupicker" class="hidden">
+      <div id="tupicker-head">
+        <span id="tupicker-title">Choose an item</span>
+        <button id="tupicker-close" class="tabbtn">Close</button>
+      </div>
+      <div id="tupicker-grid"></div>
+    </div>
+
+    <div id="tuoutcomes">
+      <h2>Possible outcomes</h2>
+      <div id="tuoutcomes-note"></div>
+      <div id="tuoutcomes-grid"></div>
+    </div>
+
+    <div id="tubar">
+      <span id="tu-count" class="num">0/10 selected</span>
+      <button id="tu-copy" class="tabbtn" disabled>Copy trade-up command</button>
+      <button id="tu-clear" class="tabbtn">Clear</button>
+    </div>
   </section>
 
   <footer>Play in chat: ~cs wage · ~cs open &lt;case&gt; · ~cs inv · ~cs sell · Prices from Skinport · Not affiliated with Valve</footer>
@@ -674,11 +754,19 @@ function nextTradeUpTier(tier){
 // Collection's highest tier is Covert, so its Covert items have nowhere to
 // go and can't be used as inputs at all), so this can't be a flat tier check.
 function collectionHasNextTier(collectionName, tier){
-  if (!COLLECTIONS_CATALOG) return false;
+  return nextTierPoolFor(collectionName, tier).length > 0;
+}
+
+// The actual next-tier skin pool for a collection (name/image/rarity/
+// minFloat/maxFloat per skin), used by the trade-up contract screen to list
+// possible outcomes and predict their float.
+function nextTierPoolFor(collectionName, tier){
+  if (!COLLECTIONS_CATALOG) return [];
   const next = nextTradeUpTier(tier);
-  if (!next) return false;
+  if (!next) return [];
   const col = COLLECTIONS_CATALOG.find(c => c.name === collectionName);
-  return !!col && col.items.some(i => i.rarity === next);
+  if (!col) return [];
+  return col.items.filter(i => i.rarity === next);
 }
 
 // The Knife/Glove pool a Covert item's collection maps to, via the case
@@ -774,6 +862,240 @@ function renderProfileGrids(){
     el.addEventListener('click', () => { location.hash = '#/item/' + el.dataset.id; }));
 
   if (selectMode) updateSelectBar();
+}
+
+// --- Trade-Up Contract page: a full CS2-style screen (pick a tier/quality,
+// fill 10 slots - 5 for Covert - from your inventory, see live outcome odds
+// and predicted float). Execution still happens via the same ~cs tradeup
+// chat command as the inline picker above - this is just a much richer way
+// to build it, since the site has no way to submit anything live. ---
+let TU_PLAYER = null;
+let TU_INV = [];
+let TU_TIER = null;
+let TU_STATTRAK = false;
+let TU_SLOTS = [];
+let TU_PICKER_SLOT = null;
+
+function sizeForTier(tier){ return tier === 'Covert' ? COVERT_TRADEUP_SIZE : TRADEUP_SIZE; }
+function tuRequiredSize(){ return TU_TIER ? sizeForTier(TU_TIER) : TRADEUP_SIZE; }
+
+function wearFromPredictedFloat(f){
+  if (f < 0.07) return 'Factory New';
+  if (f < 0.15) return 'Minimal Wear';
+  if (f < 0.38) return 'Field-Tested';
+  if (f < 0.45) return 'Well-Worn';
+  return 'Battle-Scarred';
+}
+
+// Counts of eligible items per "tier|isStatTrak" combination, so the tier
+// and quality controls can grey out anything that could never reach a full
+// contract (fewer than 10, or 5 for Covert).
+function tuEligibleCounts(){
+  const counts = {};
+  for (const it of TU_INV) {
+    if (!eligibleForTradeUp(it)) continue;
+    const key = it.rarity + '|' + (!!it.stattrak);
+    counts[key] = (counts[key] || 0) + 1;
+  }
+  return counts;
+}
+
+function tuPickDefaultTier(){
+  const counts = tuEligibleCounts();
+  TU_TIER = null;
+  TU_STATTRAK = false;
+  for (const tier of TRADEUP_TIER_LADDER) {
+    const need = sizeForTier(tier);
+    if ((counts[tier+'|false']||0) >= need) { TU_TIER = tier; TU_STATTRAK = false; break; }
+    if ((counts[tier+'|true']||0) >= need) { TU_TIER = tier; TU_STATTRAK = true; break; }
+  }
+  tuResetSlots();
+}
+
+function tuResetSlots(){
+  TU_SLOTS = TU_TIER ? new Array(tuRequiredSize()).fill(null) : [];
+  TU_PICKER_SLOT = null;
+}
+
+// Owned items matching the current tier+quality that aren't already sitting
+// in a slot - what the picker panel offers.
+function tuAvailableItems(){
+  return TU_INV.filter(it =>
+    it.rarity === TU_TIER && !!it.stattrak === TU_STATTRAK &&
+    eligibleForTradeUp(it) && !TU_SLOTS.includes(it.id)
+  );
+}
+
+// Same 1/N-share-per-input model the backend's tradeUp() uses: group the
+// filled slots by collection, weight = count/total, split equally among
+// that collection's possible outcomes (next tier up, or for Covert, the
+// associated case's Knife/Glove pool). Float is normalized per-input against
+// that input's own range, averaged, then remapped per possible output.
+function tuComputeOutcomes(){
+  const filled = TU_SLOTS.filter(id => id != null).map(id => TU_INV.find(x => x.id === id)).filter(Boolean);
+  if (filled.length === 0) return [];
+
+  const byCollection = {};
+  for (const it of filled) byCollection[it.collection] = (byCollection[it.collection] || 0) + 1;
+
+  let normSum = 0;
+  for (const it of filled) {
+    const minF = it.minFloat ?? 0, maxF = it.maxFloat ?? 1;
+    const range = maxF - minF;
+    const norm = range > 0 ? (it.float - minF) / range : 0;
+    normSum += Math.min(1, Math.max(0, norm));
+  }
+  const avgNorm = normSum / filled.length;
+
+  const total = filled.length;
+  const outcomes = [];
+  for (const collection in byCollection) {
+    const share = byCollection[collection] / total;
+    const pool = TU_TIER === 'Covert'
+      ? rareOutcomesFor(collection, TU_STATTRAK)
+      : nextTierPoolFor(collection, TU_TIER);
+    if (pool.length === 0) continue; // shouldn't happen for eligible inputs, but guard anyway
+    const perOutcome = share / pool.length;
+    for (const skin of pool) {
+      const minF = skin.minFloat ?? 0, maxF = skin.maxFloat ?? 1;
+      outcomes.push({
+        name: skin.name, image: skin.image,
+        pct: perOutcome, predictedFloat: minF + avgNorm * (maxF - minF)
+      });
+    }
+  }
+  outcomes.sort((a, b) => b.pct - a.pct);
+  return outcomes;
+}
+
+function tradeUpView(name){
+  const p = DATA.players.find(x => x.name === name);
+  const inv = (DATA.inventories||{})[name] || [];
+  if(!p){ location.hash=''; return; }
+  $('tuname').textContent = 'Trade-Up Contract — ' + p.name;
+
+  const isNewPlayer = TU_PLAYER !== name;
+  TU_PLAYER = name;
+  TU_INV = inv;
+
+  Promise.all([loadCollectionsCatalog(), loadCasesCatalog()]).then(() => {
+    if (isNewPlayer) tuPickDefaultTier();
+    renderTradeUp();
+  });
+}
+
+function renderTradeUp(){
+  // Drop any slot whose item vanished since the last refresh (sold, traded,
+  // etc.) rather than pointing at a stale id.
+  if (TU_TIER) TU_SLOTS = TU_SLOTS.map(id => (id != null && TU_INV.some(x => x.id === id)) ? id : null);
+
+  const counts = tuEligibleCounts();
+
+  $('tutiers').innerHTML = TRADEUP_TIER_LADDER.map(tier => {
+    const have = Math.max(counts[tier+'|false']||0, counts[tier+'|true']||0);
+    const disabled = have < sizeForTier(tier);
+    return '<button class="tutier-btn'+(tier===TU_TIER?' active':'')+'" style="--rar:'+(RARITY[tier]||'var(--milspec)')+'" data-tier="'+tier+'"'+(disabled?' disabled':'')+'>'+tier+'</button>';
+  }).join('');
+  document.querySelectorAll('#tutiers .tutier-btn').forEach(el => {
+    if (el.disabled) return;
+    el.addEventListener('click', () => {
+      TU_TIER = el.dataset.tier;
+      TU_STATTRAK = (counts[TU_TIER+'|false']||0) >= sizeForTier(TU_TIER) ? false : true;
+      tuResetSlots();
+      renderTradeUp();
+    });
+  });
+
+  const need = tuRequiredSize();
+  const normalOk = !!TU_TIER && (counts[TU_TIER+'|false']||0) >= need;
+  const stOk = !!TU_TIER && (counts[TU_TIER+'|true']||0) >= need;
+  $('tu-normal').classList.toggle('active', !TU_STATTRAK);
+  $('tu-stattrak').classList.toggle('active', TU_STATTRAK);
+  $('tu-normal').disabled = !normalOk;
+  $('tu-stattrak').disabled = !stOk;
+
+  if (!TU_TIER) {
+    $('tuslots').innerHTML = '<div id="msg" style="grid-column:1/-1"><b>Not enough items yet</b>you need at least 10 same-tier, same-quality items (5 for Covert) to start a trade-up</div>';
+  } else {
+    $('tuslots').innerHTML = TU_SLOTS.map((id, i) => {
+      const it = id != null ? TU_INV.find(x => x.id === id) : null;
+      if (!it) return '<button class="tuslot" data-slot="'+i+'"><span class="tuplus">+</span></button>';
+      const {weapon, skin, st} = splitName(it.name);
+      const rar = RARITY[it.rarity] || 'var(--milspec)';
+      return '<div class="tuslot filled" style="--rar:'+rar+'">'+
+        '<button class="tsremove" data-slot="'+i+'">✕</button>'+
+        '<img loading="lazy" src="'+esc(it.image||'')+'" alt="">'+
+        '<div class="tsn">'+(st?'<span class="st">ST™</span>':'')+esc(weapon)+'</div>'+
+        '<div class="tsn">'+esc(skin)+'</div>'+
+      '</div>';
+    }).join('');
+    document.querySelectorAll('.tuslot:not(.filled)').forEach(el =>
+      el.addEventListener('click', () => { TU_PICKER_SLOT = Number(el.dataset.slot); renderTradeUp(); }));
+    document.querySelectorAll('.tsremove').forEach(el =>
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        TU_SLOTS[Number(el.dataset.slot)] = null;
+        renderTradeUp();
+      }));
+  }
+
+  tuRenderPicker();
+  tuRenderOutcomes();
+  tuRenderBar();
+}
+
+function tuRenderPicker(){
+  const open = TU_PICKER_SLOT != null;
+  $('tupicker').classList.toggle('hidden', !open);
+  if (!open) return;
+  const items = tuAvailableItems();
+  $('tupicker-title').textContent = (TU_TIER||'') + (TU_STATTRAK?' StatTrak™':'') + ' — choose an item ('+items.length+' available)';
+  $('tupicker-grid').innerHTML = items.length
+    ? items.map(it => {
+        const {weapon, skin, st} = splitName(it.name);
+        const rar = RARITY[it.rarity] || 'var(--milspec)';
+        return '<button class="tupick" style="--rar:'+rar+'" data-id="'+it.id+'">'+
+          '<img loading="lazy" src="'+esc(it.image||'')+'" alt="">'+
+          '<div class="tsn">'+(st?'<span class="st">ST™</span>':'')+esc(weapon)+'</div>'+
+          '<div class="tsn">'+esc(skin)+' · '+esc(it.collection||'')+'</div>'+
+        '</button>';
+      }).join('')
+    : '<div id="msg" style="grid-column:1/-1">No more matching items</div>';
+  document.querySelectorAll('#tupicker-grid .tupick').forEach(el =>
+    el.addEventListener('click', () => {
+      TU_SLOTS[TU_PICKER_SLOT] = Number(el.dataset.id);
+      TU_PICKER_SLOT = null;
+      renderTradeUp();
+    }));
+}
+
+function tuRenderOutcomes(){
+  const filledCount = TU_SLOTS.filter(id => id != null).length;
+  if (!TU_TIER || filledCount === 0) {
+    $('tuoutcomes-note').textContent = 'Fill in a slot to see possible outcomes.';
+    $('tuoutcomes-grid').innerHTML = '';
+    return;
+  }
+  const outcomes = tuComputeOutcomes();
+  const complete = filledCount === tuRequiredSize();
+  $('tuoutcomes-note').textContent = complete
+    ? (outcomes.length + ' possible outcome' + (outcomes.length===1?'':'s') + ' based on your ' + filledCount + ' selected items')
+    : ('Odds so far, based on the ' + filledCount + ' item' + (filledCount===1?'':'s') + " you've placed — fill every slot for the final odds");
+  const outRar = TU_TIER === 'Covert' ? 'var(--gold)' : (RARITY[nextTradeUpTier(TU_TIER)] || 'var(--milspec)');
+  $('tuoutcomes-grid').innerHTML = outcomes.map(o =>
+    '<div class="tuoutcome" style="--rar:'+outRar+'">'+
+      '<img loading="lazy" src="'+esc(o.image||'')+'" alt="">'+
+      '<div class="tsn">'+esc(o.name)+'</div>'+
+      '<div class="tupct">'+(o.pct*100).toFixed(1)+'%</div>'+
+      '<div class="tufloat">'+wearFromPredictedFloat(o.predictedFloat)+' · '+o.predictedFloat.toFixed(4)+'</div>'+
+    '</div>'
+  ).join('');
+}
+
+function tuRenderBar(){
+  const filledCount = TU_SLOTS.filter(id => id != null).length;
+  $('tu-count').textContent = filledCount + '/' + tuRequiredSize() + ' selected';
+  $('tu-copy').disabled = filledCount !== tuRequiredSize();
 }
 
 function player(name){
@@ -1024,25 +1346,29 @@ function route(scrollTop){
   const mcd = location.hash.match(/^#\/case\/(.+)$/);
   const mit = location.hash.match(/^#\/item\/(.+)$/);
   const mcc = location.hash.match(/^#\/colcat\/([^/]+)\/(.+)$/);
+  const mtu = location.hash.match(/^#\/tradeup\/(.+)$/);
   const onPlayer = !!(mp && DATA);
   const onCases = !!(mc && DATA);
   const onCollections = !!(mcol && DATA);
   const onCaseDetail = !!(mcd && DATA);
   const onItem = !!(mit && DATA);
   const onCollectionCatalog = !!(mcc && DATA);
-  $('board').classList.toggle('hidden', onPlayer || onCases || onCollections || onCaseDetail || onItem || onCollectionCatalog);
+  const onTradeUp = !!(mtu && DATA);
+  $('board').classList.toggle('hidden', onPlayer || onCases || onCollections || onCaseDetail || onItem || onCollectionCatalog || onTradeUp);
   $('player').classList.toggle('hidden', !onPlayer);
   $('casesview').classList.toggle('hidden', !onCases);
   $('collectionsview').classList.toggle('hidden', !onCollections);
   $('casedetail').classList.toggle('hidden', !onCaseDetail);
   $('itemview').classList.toggle('hidden', !onItem);
   $('collectioncatalog').classList.toggle('hidden', !onCollectionCatalog);
+  $('tradeupview').classList.toggle('hidden', !onTradeUp);
   if(onPlayer) player(decodeURIComponent(mp[1]));
   if(onCases) casesView(decodeURIComponent(mc[1]));
   if(onCollections) collectionsView(decodeURIComponent(mcol[1]));
   if(onCaseDetail) caseDetailView(decodeURIComponent(mcd[1]));
   if(onItem) itemView(mit[1]);
   if(onCollectionCatalog) collectionCatalogView(decodeURIComponent(mcc[1]), decodeURIComponent(mcc[2]));
+  if(onTradeUp) tradeUpView(decodeURIComponent(mtu[1]));
   if(scrollTop) window.scrollTo(0,0);
 }
 
@@ -1064,6 +1390,11 @@ $('back2').addEventListener('click', () => { location.hash=''; });
 $('back3').addEventListener('click', () => { location.hash=''; });
 $('back4').addEventListener('click', () => { location.hash=''; });
 $('back5').addEventListener('click', () => { location.hash=''; });
+$('back7').addEventListener('click', () => {
+  // Return to that player's Inventory tab rather than the leaderboard
+  const m = location.hash.match(/^#\/tradeup\/(.+)$/);
+  location.hash = m ? '#/p/' + m[1] : '';
+});
 $('back6').addEventListener('click', () => {
   // Return to that player's Collections page rather than the leaderboard
   const m = location.hash.match(/^#\/colcat\/([^/]+)\/(.+)$/);
@@ -1076,6 +1407,9 @@ $('tab-cases').addEventListener('click', () => {
 });
 $('tab-collections').addEventListener('click', () => {
   if(currentPlayerName) location.hash = '#/col/' + encodeURIComponent(currentPlayerName);
+});
+$('tab-tradeup').addEventListener('click', () => {
+  if(currentPlayerName) location.hash = '#/tradeup/' + encodeURIComponent(currentPlayerName);
 });
 $('select-toggle').addEventListener('click', enterSelectMode);
 $('select-cancel').addEventListener('click', exitSelectMode);
@@ -1092,6 +1426,31 @@ $('select-copy').addEventListener('click', async () => {
     prompt('Copy this command:', cmd);
   }
 });
+$('tu-clear').addEventListener('click', () => { tuResetSlots(); renderTradeUp(); });
+$('tupicker-close').addEventListener('click', () => { TU_PICKER_SLOT = null; renderTradeUp(); });
+$('tu-normal').addEventListener('click', () => {
+  if ($('tu-normal').disabled) return;
+  TU_STATTRAK = false; tuResetSlots(); renderTradeUp();
+});
+$('tu-stattrak').addEventListener('click', () => {
+  if ($('tu-stattrak').disabled) return;
+  TU_STATTRAK = true; tuResetSlots(); renderTradeUp();
+});
+$('tu-copy').addEventListener('click', async () => {
+  const ids = TU_SLOTS.filter(id => id != null);
+  if (ids.length !== tuRequiredSize()) return;
+  const cmd = '~cs tradeup ' + ids.join(' ');
+  try {
+    await navigator.clipboard.writeText(cmd);
+    const btn = $('tu-copy');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  } catch (err) {
+    prompt('Copy this command:', cmd);
+  }
+});
+
 $('search').addEventListener('input', e => board(e.target.value));
 
 $('filter-toggle').addEventListener('click', () => { $('filter-panel').classList.toggle('hidden'); });
@@ -1116,6 +1475,7 @@ window.addEventListener('hashchange', () => {
   selectedIds = [];
   $('select-toggle').classList.remove('hidden');
   $('select-controls').classList.add('hidden');
+  TU_PLAYER = null; // force the trade-up page to re-pick a default tier on next visit
   route(true);
 });
 
